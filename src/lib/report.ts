@@ -1,5 +1,3 @@
-"use server";
-
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { CaStatus } from "./types";
@@ -12,6 +10,8 @@ export type ReportResult =
 
 /**
  * Processa um reporte vindo de um QR Code (Seção 2.2 do SDD).
+ * Chamado APENAS pelo Route Handler GET /report — nunca durante o
+ * render de uma página, pois `revalidatePath()` é proibido em render.
  *
  * 1. Valida o token estático contra as variáveis de ambiente — os tokens
  *    nunca chegam ao bundle do frontend, só existem no QR impresso.
