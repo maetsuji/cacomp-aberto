@@ -1,7 +1,6 @@
 # CA-Aberto (CACOMP · UnB)
 
-**O CA de Computação está aberto agora?** → [cacomp-aberto.vercel.app](https://cacomp-aberto.vercel.app)
-
+**O CA de Computação está aberto agora?** → [cacomp.xyz](https://cacomp.xyz)
 Status em tempo real do Centro Acadêmico de Computação da UnB, reportado pela
 própria comunidade via QR Codes fixados no local — sem login, sem app, sem
 custo de infraestrutura.
