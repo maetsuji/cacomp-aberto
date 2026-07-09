@@ -1,4 +1,11 @@
-import { kv } from "@vercel/kv";
+import {
+  storeAvailable,
+  storeGetJson,
+  storeLpushJson,
+  storeLrangeJson,
+  storeLtrim,
+  storeSetJson,
+} from "./store";
 import type { CaState, CaStatus, ReportEntry } from "./types";
 
 // Chaves no Vercel KV (Redis). Estrutura chave-valor pura:
@@ -13,22 +20,21 @@ const FALLBACK_STATE: CaState = {
   updated_at: new Date(0).toISOString(),
 };
 
-// Sem KV configurado (dev local ou build de CI), o app degrada para o
-// estado padrão em vez de quebrar — o deploy na Vercel injeta as vars.
-const kvAvailable = () =>
-  Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+// Sem Redis configurado (dev local ou build de CI), o app degrada para o
+// estado padrão em vez de quebrar.
+const kvAvailable = () => storeAvailable();
 
 /** Lê o estado atual do CA. Se o KV estiver vazio (primeiro deploy), assume FECHADO. */
 export async function getCaState(): Promise<CaState> {
   if (!kvAvailable()) return FALLBACK_STATE;
-  const state = await kv.get<CaState>(STATUS_KEY);
+  const state = await storeGetJson<CaState>(STATUS_KEY);
   return state ?? FALLBACK_STATE;
 }
 
 /** Últimos N reportes para o feed de transparência da Home. */
 export async function getRecentReports(limit = 5): Promise<ReportEntry[]> {
   if (!kvAvailable()) return [];
-  const entries = await kv.lrange<ReportEntry>(HISTORY_KEY, 0, limit - 1);
+  const entries = await storeLrangeJson<ReportEntry>(HISTORY_KEY, 0, limit - 1);
   return entries ?? [];
 }
 
@@ -48,10 +54,10 @@ export async function setCaState(
   };
 
   await Promise.all([
-    kv.set(STATUS_KEY, state),
-    kv.lpush(HISTORY_KEY, entry),
+    storeSetJson(STATUS_KEY, state),
+    storeLpushJson(HISTORY_KEY, entry),
   ]);
-  await kv.ltrim(HISTORY_KEY, 0, HISTORY_MAX - 1);
+  await storeLtrim(HISTORY_KEY, 0, HISTORY_MAX - 1);
 
   return state;
 }
