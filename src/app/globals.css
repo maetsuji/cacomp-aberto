@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Transição suave da cor de fundo quando o status muda entre visitas. */
+body {
+  transition: background-color 300ms ease;
+}
