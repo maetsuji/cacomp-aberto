@@ -38,7 +38,7 @@ const THEME: Record<
   }
 > = {
   OPEN: {
-    bg: "bg-green-800",
+    bg: "bg-green-700",
     glow: "#69ffa0",
     glowDim: "#00ff5e",
     label: "ABERTO",
