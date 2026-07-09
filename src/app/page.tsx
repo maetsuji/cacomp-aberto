@@ -1,6 +1,7 @@
 import { TimeAgo } from "@/components/TimeAgo";
+import { maybeAutoClose } from "@/lib/auto-close";
 import { getRandomGif } from "@/lib/gif";
-import { getCaState, getRecentReports } from "@/lib/status";
+import { AUTO_CLOSE_REPORTER_ID, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
 
 /* ─────────────────────────── ESTRATÉGIA DE CACHE ───────────────────────────
@@ -52,7 +53,7 @@ const THEME: Record<
     glowDim: "#ff0000",
     label: "FECHADO",
     emoji: "🔴",
-    hint: "Encontrou o CA aberto? Escaneie o QR Code lá dentro!",
+    hint: "Abriram o CA? Confirme pelo QR Code lá dentro!",
   },
 };
 
@@ -74,9 +75,11 @@ function formatClock(iso: string): string {
 
 export default async function HomePage() {
   // Leituras feitas UMA vez por regeneração, nunca por visita (ver acima).
-  // O estado vem primeiro porque decide qual tag de GIF buscar; reports
-  // e o GIF seguem em paralelo depois disso.
-  const state = await getCaState();
+  // maybeAutoClose devolve o estado vigente E aplica o fechamento
+  // automático noturno "preguiçoso" (regra completa em lib/auto-close.ts):
+  // como o Hobby só permite cron 1x/dia, as checagens de hora em hora da
+  // madrugada acontecem aqui, pegando carona na regeneração ISR.
+  const { state } = await maybeAutoClose();
   const [reports, gifUrl] = await Promise.all([
     getRecentReports(5),
     getRandomGif(GIF_TAG[state.current_status]),
@@ -152,10 +155,18 @@ export default async function HomePage() {
                 className="flex items-baseline justify-between gap-4 text-sm"
               >
                 <span className="opacity-80">
-                  Alguém reportou{" "}
-                  <strong>
-                    {report.action === "OPEN" ? "“Aberto”" : "“Fechado”"}
-                  </strong>
+                  {report.reporter_hash === AUTO_CLOSE_REPORTER_ID ? (
+                    <>
+                      Fechado <strong>automaticamente</strong> de madrugada
+                    </>
+                  ) : (
+                    <>
+                      Alguém reportou{" "}
+                      <strong>
+                        {report.action === "OPEN" ? "“Aberto”" : "“Fechado”"}
+                      </strong>
+                    </>
+                  )}
                 </span>
                 <span className="shrink-0 tabular-nums opacity-50">
                   às {formatClock(report.timestamp)}

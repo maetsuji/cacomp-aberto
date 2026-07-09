@@ -20,6 +20,11 @@ const FALLBACK_STATE: CaState = {
   updated_at: new Date(0).toISOString(),
 };
 
+// Identifica entradas do histórico geradas pelo fechamento automático
+// noturno (src/lib/auto-close.ts), para o feed de transparência
+// distinguir isso de um reporte real de alguém no local.
+export const AUTO_CLOSE_REPORTER_ID = "system:auto-midnight";
+
 // Sem Redis configurado (dev local ou build de CI), o app degrada para o
 // estado padrão em vez de quebrar.
 const kvAvailable = () => storeAvailable();
