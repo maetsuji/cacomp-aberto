@@ -123,7 +123,7 @@ export default async function HomePage() {
         <p className="mt-6 text-center text-xs opacity-40">
           Reportes anônimos via QR Code no local ·{" "}
           <a
-            href="https://github.com/cacomp/ca-aberto"
+            href="https://github.com/maetsuji/cacomp-aberto"
             className="underline underline-offset-2"
           >
             código aberto
