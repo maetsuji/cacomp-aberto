@@ -98,9 +98,9 @@ export default async function HomePage() {
         <img
           src="/cacomp_xyz.gif"
           alt="cacomp.xyz"
-          width={600}
-          height={300}
-          className="h-14 w-auto sm:h-16"
+          width={557}
+          height={100}
+          className="h-14 w-auto sm:h-12"
         />
       </header>
 
