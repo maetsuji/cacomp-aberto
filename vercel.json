@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/auto-close",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/rotate-tokens",
+      "schedule": "0 9 * * *"
     }
   ]
 }
