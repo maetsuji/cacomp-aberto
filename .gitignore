@@ -24,6 +24,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# QR codes gerados localmente (contêm tokens secretos embutidos na URL)
+/qrcodes/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

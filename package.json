@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-qr": "node scripts/generate-qr.mjs",
+    "generate-qr:prod": "node scripts/generate-qr.mjs --prod"
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",
@@ -18,8 +20,10 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.8.0"
   }
