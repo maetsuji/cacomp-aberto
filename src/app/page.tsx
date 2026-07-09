@@ -1,4 +1,5 @@
 import { TimeAgo } from "@/components/TimeAgo";
+import { getRandomGif } from "@/lib/gif";
 import { getCaState, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
 
@@ -43,7 +44,7 @@ const THEME: Record<
     glowDim: "#00ff5e",
     label: "ABERTO",
     emoji: "🟢",
-    hint: "Alguém confirmou presença no CA.",
+    hint: "Alguém confirmou que o CA está aberto!",
   },
   CLOSED: {
     bg: "bg-red-950",
@@ -51,8 +52,16 @@ const THEME: Record<
     glowDim: "#ff0000",
     label: "FECHADO",
     emoji: "🔴",
-    hint: "Encontrou o CA aberto? Escaneie o QR Code lá dentro.",
+    hint: "Encontrou o CA aberto? Escaneie o QR Code lá dentro!",
   },
+};
+
+// Tags de busca do GIF por estado (Seção 4 do SDD: feedback visual
+// instantâneo e amigável). "rating=g" em getRandomGif já filtra
+// conteúdo explícito/violento/pornográfico na origem.
+const GIF_TAG: Record<CaStatus, string> = {
+  OPEN: "thumbs up",
+  CLOSED: "thumbs down",
 };
 
 function formatClock(iso: string): string {
@@ -65,9 +74,12 @@ function formatClock(iso: string): string {
 
 export default async function HomePage() {
   // Leituras feitas UMA vez por regeneração, nunca por visita (ver acima).
-  const [state, reports] = await Promise.all([
-    getCaState(),
+  // O estado vem primeiro porque decide qual tag de GIF buscar; reports
+  // e o GIF seguem em paralelo depois disso.
+  const state = await getCaState();
+  const [reports, gifUrl] = await Promise.all([
     getRecentReports(5),
+    getRandomGif(GIF_TAG[state.current_status]),
   ]);
 
   const theme = THEME[state.current_status];
@@ -78,7 +90,7 @@ export default async function HomePage() {
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="text-sm font-medium uppercase tracking-widest opacity-70">
-          CA de Computação · UnB
+          CACOMP · UnB
         </p>
 
         {/* Monaspace Neon com texture healing (calt) + efeito de placa de
@@ -96,6 +108,22 @@ export default async function HomePage() {
         >
           {theme.label}
         </h1>
+
+        {gifUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- GIF
+          // animado de domínio externo/variável (CDN do GIPHY); next/image
+          // exigiria remotePatterns amplo e pode quebrar a animação.
+          <img
+            src={gifUrl}
+            alt={
+              isOpen
+                ? "GIF de comemoração — polegar para cima"
+                : "GIF de decepção — polegar para baixo"
+            }
+            className="h-36 w-auto rounded-xl shadow-lg sm:h-44"
+            loading="lazy"
+          />
+        )}
 
         <p className="text-base opacity-80">
           Atualizado <TimeAgo iso={state.updated_at} />
