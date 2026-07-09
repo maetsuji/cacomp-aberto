@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npx next *)",
-      "Bash(curl -s -o /dev/null -w \"HTTP status: %{http_code}\\\\n\" \"https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=thumbs%20up&rating=g\")"
+      "Bash(curl -s -o /dev/null -w \"HTTP status: %{http_code}\\\\n\" \"https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=thumbs%20up&rating=g\")",
+      "Bash(identify /home/maetsuji/unb/cacomp-aberto/cacomp_xyz.gif)",
+      "Bash(git -C /home/maetsuji/unb/cacomp-aberto mv cacomp_xyz.gif public/)",
+      "Bash(convert /home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0] /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/cacomp_frame.png)",
+      "Bash(convert \"/home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0]\" /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/cacomp_frame.png)",
+      "Bash(magick identify *)",
+      "Bash(magick \"/home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0]\" -format \"%[fx:u.a]\" -crop 1x1+0+0 info:)"
     ]
   }
 }

@@ -90,10 +90,24 @@ export default async function HomePage() {
 
   return (
     <main className={`flex min-h-dvh flex-col text-zinc-50 ${theme.bg}`}>
+      {/* ── Micro header: wordart do cacomp.xyz, só marca visual ── */}
+      <header className="flex justify-center pt-4">
+        {/* eslint-disable-next-line @next/next/no-img-element -- GIF
+            animado local; next/image não otimiza GIF (exigiria
+            `unoptimized`) e pode quebrar a animação. */}
+        <img
+          src="/cacomp_xyz.gif"
+          alt="cacomp.xyz"
+          width={600}
+          height={300}
+          className="h-14 w-auto sm:h-16"
+        />
+      </header>
+
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-sm font-medium uppercase tracking-widest opacity-70">
-          CACOMP · UnB
+        <p className="text-sm font-semibold uppercase tracking-widest opacity-70">
+          o CACOMP está:
         </p>
 
         {/* Monaspace Neon com texture healing (calt) + efeito de placa de
