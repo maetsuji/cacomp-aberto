@@ -100,10 +100,9 @@ export default async function HomePage() {
           alt="cacomp.xyz"
           width={557}
           height={100}
-          className="h-14 w-auto sm:h-8"
+          className="h-8 w-auto sm:h-12"
         />
       </header>
-
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-widest opacity-70">
