@@ -127,5 +127,8 @@ export async function storeAcquireLock(
     return acquired === "OK";
   }
 
-  return false;
+  // Sem store configurado (dev local sem Redis): libera o reporte em vez
+  // de bloquear tudo — em produção este caminho nunca é alcançado, pois
+  // REDIS_URL/KV_REST_* sempre estarão presentes.
+  return true;
 }

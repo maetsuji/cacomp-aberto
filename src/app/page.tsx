@@ -38,17 +38,17 @@ const THEME: Record<
   }
 > = {
   OPEN: {
-    bg: "bg-green-500",
-    glow: "#4ade80",
-    glowDim: "#15803d",
+    bg: "bg-green-800",
+    glow: "#69ffa0",
+    glowDim: "#00ff5e",
     label: "ABERTO",
     emoji: "🟢",
     hint: "Alguém confirmou presença no CA.",
   },
   CLOSED: {
     bg: "bg-red-950",
-    glow: "#ff7070",
-    glowDim: "#ff2222",
+    glow: "#dc6a6a",
+    glowDim: "#ff0000",
     label: "FECHADO",
     emoji: "🔴",
     hint: "Encontrou o CA aberto? Escaneie o QR Code lá dentro.",
@@ -74,11 +74,7 @@ export default async function HomePage() {
   const isOpen = state.current_status === "OPEN";
 
   return (
-    <main
-      className={`flex min-h-dvh flex-col ${theme.bg} ${
-        isOpen ? "text-green-950" : "text-zinc-50"
-      }`}
-    >
+    <main className={`flex min-h-dvh flex-col text-zinc-50 ${theme.bg}`}>
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="text-sm font-medium uppercase tracking-widest opacity-70">
