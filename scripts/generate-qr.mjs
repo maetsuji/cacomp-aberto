@@ -36,12 +36,24 @@ function loadEnv(file) {
   return env;
 }
 
-const envFile = isProd ? ".env.production.local" : ".env.local";
-const env = loadEnv(path.join(root, envFile));
+// Em produção, tenta .env.production.local; se não existir, cai para
+// .env.local — nesse caso os tokens PRECISAM ser os mesmos configurados
+// nas variáveis de ambiente do projeto na Vercel, senão o QR gera uma
+// URL que o servidor vai rejeitar como token inválido.
+let envFile = isProd ? ".env.production.local" : ".env.local";
+let env = loadEnv(path.join(root, envFile));
+if (isProd && Object.keys(env).length === 0) {
+  console.warn(
+    "⚠ .env.production.local não encontrado — usando tokens de .env.local.\n" +
+      "  Confirme que são os MESMOS valores cadastrados na Vercel."
+  );
+  envFile = ".env.local";
+  env = loadEnv(path.join(root, envFile));
+}
 
 const hostArg = args.find((a) => a.startsWith("--host="))?.split("=")[1];
 const baseUrl = isProd
-  ? env.SITE_URL ?? "https://ca.cacomp.org" // ajuste para o domínio real
+  ? env.SITE_URL ?? "https://cacomp-aberto.vercel.app" // URL real do deploy
   : `http://${hostArg ?? "localhost:3000"}`;
 
 const targets = [
