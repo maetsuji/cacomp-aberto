@@ -22,3 +22,17 @@ body {
 .texture-healing {
   font-feature-settings: "calt" 1;
 }
+
+/* Efeito de placa de neon: núcleo quase branco (o "tubo aceso") com
+ * brilho externo na cor do estado, em camadas — igual a um letreiro de
+ * neon de vitrine. As cores vêm de --neon-color / --neon-color-dim,
+ * setadas inline por elemento (ver THEME em page.tsx). */
+.neon-text {
+  color: var(--neon-core, #fff);
+  text-shadow:
+    0 0 2px var(--neon-core, #fff),
+    0 0 6px var(--neon-core, #fff),
+    0 0 18px var(--neon-color),
+    0 0 40px var(--neon-color),
+    0 0 96px var(--neon-color-dim, var(--neon-color));
+}

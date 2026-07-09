@@ -1,5 +1,5 @@
-import { getCaState, getRecentReports } from "@/lib/status";
 import { TimeAgo } from "@/components/TimeAgo";
+import { getCaState, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
 
 /* ─────────────────────────── ESTRATÉGIA DE CACHE ───────────────────────────
@@ -28,18 +28,27 @@ export const revalidate = 300;
 
 const THEME: Record<
   CaStatus,
-  { bg: string; accent: string; label: string; emoji: string; hint: string }
+  {
+    bg: string;
+    glow: string; // cor saturada do brilho externo da placa de neon
+    glowDim: string; // camada mais externa/suave do brilho
+    label: string;
+    emoji: string;
+    hint: string;
+  }
 > = {
   OPEN: {
     bg: "bg-green-500",
-    accent: "text-green-50",
+    glow: "#4ade80",
+    glowDim: "#15803d",
     label: "ABERTO",
     emoji: "🟢",
     hint: "Alguém confirmou presença no CA.",
   },
   CLOSED: {
     bg: "bg-red-950",
-    accent: "text-zinc-400",
+    glow: "#ff7070",
+    glowDim: "#ff2222",
     label: "FECHADO",
     emoji: "🔴",
     hint: "Encontrou o CA aberto? Escaneie o QR Code lá dentro.",
@@ -72,13 +81,23 @@ export default async function HomePage() {
     >
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-sm uppercase tracking-widest opacity-70">
+        <p className="text-sm font-medium uppercase tracking-widest opacity-70">
           CA de Computação · UnB
         </p>
 
-        {/* Monaspace Neon com texture healing (calt); font-extrabold
-            porque o eixo wght da variável vai até 800, não 900. */}
-        <h1 className="texture-healing font-mono text-6xl font-extrabold tracking-tight sm:text-7xl">
+        {/* Monaspace Neon com texture healing (calt) + efeito de placa de
+            neon (núcleo claro + brilho externo em camadas, ver .neon-text
+            em globals.css). font-extrabold porque o eixo wght da variável
+            vai até 800, não 900. */}
+        <h1
+          className="texture-healing neon-text font-mono text-6xl font-extrabold tracking-tight sm:text-7xl"
+          style={
+            {
+              "--neon-color": theme.glow,
+              "--neon-color-dim": theme.glowDim,
+            } as React.CSSProperties
+          }
+        >
           {theme.label}
         </h1>
 

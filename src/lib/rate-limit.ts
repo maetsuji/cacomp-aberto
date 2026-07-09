@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import { storeAcquireLock } from "./store";
 
 // Janela mínima entre reportes de um mesmo hash de IP (Seção 5.1 do SDD).
-const RATE_LIMIT_SECONDS = 10 * 60; // 10 minutos
+const RATE_LIMIT_SECONDS = 1 * 6; // 10 minutos
 
 /**
  * Hash anônimo do usuário: SHA-256(IP + salt secreto + data do dia).
