@@ -100,7 +100,7 @@ export default async function HomePage() {
           alt="cacomp.xyz"
           width={557}
           height={100}
-          className="h-14 w-auto sm:h-12"
+          className="h-14 w-auto sm:h-8"
         />
       </header>
 
