@@ -32,13 +32,13 @@ const THEME: Record<
 > = {
   OPEN: {
     bg: "bg-green-500",
-    accent: "text-green-950",
+    accent: "text-green-50",
     label: "ABERTO",
     emoji: "🟢",
     hint: "Alguém confirmou presença no CA.",
   },
   CLOSED: {
-    bg: "bg-zinc-900",
+    bg: "bg-red-950",
     accent: "text-zinc-400",
     label: "FECHADO",
     emoji: "🔴",
@@ -72,11 +72,13 @@ export default async function HomePage() {
     >
       {/* ── Bloco principal: o status domina a tela (mobile-first) ── */}
       <section className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-sm font-medium uppercase tracking-widest opacity-70">
+        <p className="text-sm uppercase tracking-widest opacity-70">
           CA de Computação · UnB
         </p>
 
-        <h1 className="text-6xl font-black tracking-tight sm:text-7xl">
+        {/* Monaspace Neon com texture healing (calt); font-extrabold
+            porque o eixo wght da variável vai até 800, não 900. */}
+        <h1 className="texture-healing font-mono text-6xl font-extrabold tracking-tight sm:text-7xl">
           {theme.label}
         </h1>
 

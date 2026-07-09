@@ -1,6 +1,24 @@
 @import "tailwindcss";
 
-/* Transição suave da cor de fundo quando o status muda entre visitas. */
+/* Mapeia as fontes carregadas pelo next/font (layout.tsx) para as
+ * utilities do Tailwind v4: `font-sans` (padrão do Preflight em todo o
+ * documento) vira Inter, e `font-mono` vira Monaspace Neon. */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-monaspace), ui-monospace, monospace;
+}
+
 body {
+  /* Peso padrão do sistema: Inter SemiBold. */
+  font-weight: 600;
+  /* Transição suave da cor de fundo quando o status muda entre visitas. */
   transition: background-color 300ms ease;
+}
+
+/* Texture healing da Monaspace: a fonte redistribui o espaço entre
+ * pares de glifos desequilibrados (ex: "rn", "il") via alternates
+ * contextuais. Basta garantir que a feature "calt" esteja ativa —
+ * alguns resets/utilities de fonte mono a desligam. */
+.texture-healing {
+  font-feature-settings: "calt" 1;
 }

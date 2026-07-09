@@ -1,8 +1,8 @@
+import { kv } from "@vercel/kv";
 import { createHash } from "crypto";
-import { storeAcquireLock } from "./store";
 
 // Janela mínima entre reportes de um mesmo hash de IP (Seção 5.1 do SDD).
-const RATE_LIMIT_SECONDS = 20 * 60; // 20 minutos
+const RATE_LIMIT_SECONDS = 10 * 60; // 10 minutos
 
 /**
  * Hash anônimo do usuário: SHA-256(IP + salt secreto + data do dia).
@@ -23,6 +23,9 @@ export function hashReporter(ip: string): string {
  */
 export async function isRateLimited(reporterHash: string): Promise<boolean> {
   const key = `ca:ratelimit:${reporterHash}`;
-  const acquired = await storeAcquireLock(key, RATE_LIMIT_SECONDS);
-  return !acquired;
+  const acquired = await kv.set(key, "1", {
+    nx: true,
+    ex: RATE_LIMIT_SECONDS,
+  });
+  return acquired === null; // null = chave já existia = bloqueado
 }
