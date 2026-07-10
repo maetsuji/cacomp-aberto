@@ -25,7 +25,18 @@
       "Bash(curl -sv --http1.1 --max-time 20 -o /dev/null -w \"\\\\nTOTAL: %{time_total}s | connect: %{time_connect}s | ttfb: %{time_starttransfer}s\\\\n\" https://cacomp.xyz/admin)",
       "WebFetch(domain:lc.cx)",
       "Bash(curl -sL -A 'Mozilla/5.0 \\(compatible; Googlebot/2.1; +http://www.google.com/bot.html\\)' --max-time 15 https://dev.lc.cx/ -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/lccx_bot.html -w '%{http_code}\\\\n')",
-      "Bash(curl -sL --max-time 15 'https://documenter.gw.postman.com/api/collections/10377150-8011a6f5-bb21-461a-bd04-fb147f940c35?segregateAuth=true&versionTag=latest' -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/lccx4.json -w 'http: %{http_code}\\\\n')"
+      "Bash(curl -sL --max-time 15 'https://documenter.gw.postman.com/api/collections/10377150-8011a6f5-bb21-461a-bd04-fb147f940c35?segregateAuth=true&versionTag=latest' -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/lccx4.json -w 'http: %{http_code}\\\\n')",
+      "WebFetch(domain:developers.short.io)",
+      "Bash(curl -sL --max-time 15 https://developers.short.io/llms.txt)",
+      "Bash(curl -sL --max-time 15 https://developers.short.io/reference/post_links.md -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/shortio_create.md -w 'create: %{http_code}\\\\n')",
+      "Bash(curl -sL --max-time 15 https://developers.short.io/reference/post_links-linkid.md -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/shortio_update.md -w 'update: %{http_code}\\\\n')",
+      "Bash(dig +short open.cacomp.xyz CNAME)",
+      "Bash(dig +short open.cacomp.xyz A)",
+      "Bash(dig +short close.cacomp.xyz CNAME)",
+      "Bash(dig +short close.cacomp.xyz A)",
+      "Bash(curl -sL --max-time 15 https://developers.short.io/reference/get_links-expand.md)",
+      "Bash(dig +short qr.cacomp.xyz CNAME)",
+      "Bash(dig +short qr.cacomp.xyz A)"
     ]
   }
 }

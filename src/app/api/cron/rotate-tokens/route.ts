@@ -3,8 +3,8 @@ import { rotateAndSync } from "@/lib/rotate";
 
 // Disparado pelo Vercel Cron (vercel.json) todo dia às 06h00 de Brasília
 // (CA fechado, antes do dia começar). Rotaciona os tokens de reporte e
-// atualiza o destino dos short links do lc.cx — os QR Codes impressos
-// nunca mudam. Sem LCCX_API_KEY/short links configurados, a rotação é
+// atualiza o destino dos short links (short.io) — os QR Codes impressos
+// nunca mudam. Sem short.io/short links configurados, a rotação é
 // pulada (force: false): rotacionar sem atualizar os links quebraria os
 // QRs impressos diariamente.
 export async function GET(request: NextRequest) {

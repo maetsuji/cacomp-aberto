@@ -1,5 +1,9 @@
 import QRCode from "qrcode";
-import { getStoredShortLinks, lccxConfigured, reportUrl } from "@/lib/shortlink";
+import {
+  getStoredShortLinks,
+  reportUrl,
+  shortlinkConfigured,
+} from "@/lib/shortlink";
 import { getCaState } from "@/lib/status";
 import { getReportTokens } from "@/lib/tokens";
 import { rotateNowAction, syncLinksAction } from "./actions";
@@ -78,12 +82,12 @@ export default async function AdminPage({ searchParams }: Props) {
           </p>
         )}
 
-        {!lccxConfigured() && (
+        {!shortlinkConfigured() && (
           <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
-            <strong>LCCX_API_KEY não configurada.</strong> Os QRs abaixo
-            codificam a URL direta (com token exposto) e quebrarão a cada
-            rotação. Configure a chave para os QRs passarem a usar short
-            links estáveis.
+            <strong>short.io não configurado</strong> (SHORTIO_API_KEY e
+            SHORTIO_DOMAIN). Os QRs abaixo codificam a URL direta (com token
+            exposto) e quebrarão a cada rotação. Configure as duas variáveis
+            para os QRs passarem a usar short links estáveis.
           </p>
         )}
 
