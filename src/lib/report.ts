@@ -1,32 +1,54 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { CaStatus } from "./types";
-import { hashReporter, isRateLimited } from "./rate-limit";
+import { isGeofenceEnabled, isWithinGeofence } from "./geofence";
+import { hashReporter, isDeviceRateLimited, isIpFlooding } from "./rate-limit";
 import { setCaState } from "./status";
+import { storeIncrWithTTL } from "./store";
 import { getReportTokens, isValidToken } from "./tokens";
 
 export type ReportResult =
   | { ok: true; status: CaStatus }
-  | { ok: false; reason: "invalid_token" | "rate_limited" };
+  | {
+      ok: false;
+      reason:
+        | "invalid_token"
+        | "device_rate_limited"
+        | "ip_flooding"
+        | "daily_cap"
+        | "outside_geofence";
+    };
+
+const DAILY_CAP = Number(process.env.REPORT_DAILY_CAP ?? 500);
 
 /**
- * Processa um reporte vindo de um QR Code (Seção 2.2 do SDD).
+ * Processa um reporte vindo de um QR Code/tag NFC (Seção 2.2 do SDD).
  * Chamado APENAS pelo Route Handler GET /report — nunca durante o
  * render de uma página, pois `revalidatePath()` é proibido em render.
  *
- * 1. Valida o token contra o par rotacionável armazenado no Redis
- *    (lib/tokens.ts; fallback nas env vars) — tokens nunca chegam ao
- *    bundle do frontend, só existem por trás dos short links dos QRs.
- * 2. Aplica rate limiting por hash anônimo de IP.
- * 3. Persiste o novo estado + log anônimo no KV.
- * 4. Invalida o cache estático da Home (revalidatePath) — é isso que faz
- *    o ISR on-demand funcionar: a CDN volta a servir HTML fresco
- *    imediatamente após um reporte legítimo, sem polling nem SSR.
+ * Ordem (do mais barato pro mais caro em leituras de Redis):
+ * 1. Circuit breaker diário — protege a cota gratuita do Redis contra
+ *    flood, roda ANTES até da leitura dos tokens.
+ * 2. Valida o token contra o par rotacionável no Redis (lib/tokens.ts).
+ * 3. Teto frouxo de flood por IP (script sem cookies).
+ * 4. Rate-limit estrito por dispositivo (cookie anônimo, ver route.ts) —
+ *    substitui o antigo rate-limit por IP: numa wifi compartilhada,
+ *    dispositivos diferentes não se bloqueiam mutuamente.
+ * 5. Geofence por GPS, se ligado no /admin (lib/geofence.ts) — mitiga o
+ *    problema do link estável, mas é um dissuasor, não prova inquebrável.
+ * 6. Persiste o novo estado + log anônimo, invalida o cache da Home.
  */
 export async function processReport(
   action: string | undefined,
-  token: string | undefined
+  token: string | undefined,
+  deviceId: string,
+  coords?: { lat: number; lng: number }
 ): Promise<ReportResult> {
+  const count = await storeIncrWithTTL("ca:report-count", 86400);
+  if (count > DAILY_CAP) {
+    return { ok: false, reason: "daily_cap" };
+  }
+
   const STATUS_BY_ACTION: Record<string, CaStatus> = {
     open: "OPEN",
     close: "CLOSED",
@@ -47,8 +69,18 @@ export async function processReport(
     "unknown";
   const reporterHash = hashReporter(ip);
 
-  if (await isRateLimited(reporterHash)) {
-    return { ok: false, reason: "rate_limited" };
+  if (await isIpFlooding(reporterHash)) {
+    return { ok: false, reason: "ip_flooding" };
+  }
+
+  if (await isDeviceRateLimited(deviceId)) {
+    return { ok: false, reason: "device_rate_limited" };
+  }
+
+  if (await isGeofenceEnabled()) {
+    if (!coords || !isWithinGeofence(coords.lat, coords.lng)) {
+      return { ok: false, reason: "outside_geofence" };
+    }
   }
 
   const state = await setCaState(status, reporterHash);

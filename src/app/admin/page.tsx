@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import { isGeofenceEnabled } from "@/lib/geofence";
 import {
   getStoredShortLinks,
   reportUrl,
@@ -6,7 +7,7 @@ import {
 } from "@/lib/shortlink";
 import { getCaState } from "@/lib/status";
 import { getReportTokens } from "@/lib/tokens";
-import { rotateNowAction, syncLinksAction } from "./actions";
+import { rotateNowAction, syncLinksAction, toggleGeofenceAction } from "./actions";
 
 // Página administrativa (protegida por Basic Auth no middleware).
 // Sempre dinâmica: mostra tokens e links vigentes, nunca de cache.
@@ -49,10 +50,11 @@ interface Props {
 
 export default async function AdminPage({ searchParams }: Props) {
   const { msg } = await searchParams;
-  const [tokens, links, state] = await Promise.all([
+  const [tokens, links, state, geofenceEnabled] = await Promise.all([
     getReportTokens(),
     getStoredShortLinks(),
     getCaState(),
+    isGeofenceEnabled(),
   ]);
 
   const cards = await Promise.all([
@@ -109,7 +111,31 @@ export default async function AdminPage({ searchParams }: Props) {
               Sincronizar short links (sem rotacionar)
             </button>
           </form>
+          <form action={toggleGeofenceAction}>
+            <button
+              type="submit"
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+                geofenceEnabled
+                  ? "bg-red-700 hover:bg-red-600"
+                  : "bg-zinc-700 hover:bg-zinc-600"
+              }`}
+            >
+              {geofenceEnabled
+                ? "Desligar verificação de localização"
+                : "Ligar verificação de localização"}
+            </button>
+          </form>
         </section>
+
+        <p className="text-sm text-zinc-400">
+          Verificação de localização:{" "}
+          <strong className={geofenceEnabled ? "text-red-400" : "text-zinc-500"}>
+            {geofenceEnabled ? "LIGADA" : "DESLIGADA"}
+          </strong>
+          {geofenceEnabled
+            ? " — reportes exigem GPS perto do CA (não funciona testando de outro lugar)."
+            : " — reportes não exigem GPS (bom para testar fora do CA)."}
+        </p>
 
         {/* ── QR Codes ── */}
         <section className="grid gap-6 sm:grid-cols-2">

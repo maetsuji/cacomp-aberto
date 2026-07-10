@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isGeofenceEnabled, setGeofenceEnabled } from "@/lib/geofence";
 import { rotateAndSync } from "@/lib/rotate";
 import { syncShortLinks } from "@/lib/shortlink";
 import { getReportTokens } from "@/lib/tokens";
@@ -18,6 +19,19 @@ export async function rotateNowAction() {
       ? `Tokens rotacionados, com avisos: ${result.errors.join("; ")}`
       : "Tokens rotacionados e short links atualizados."
     : `Rotação NÃO aplicada (tokens antigos preservados): ${result.errors.join("; ")}`;
+
+  redirect(`/admin?msg=${encodeURIComponent(msg)}`);
+}
+
+/** Liga/desliga a verificação de localização (geofence) dos reportes. */
+export async function toggleGeofenceAction() {
+  const current = await isGeofenceEnabled();
+  await setGeofenceEnabled(!current);
+  revalidatePath("/admin");
+
+  const msg = !current
+    ? "Verificação de localização LIGADA — reportes agora exigem GPS perto do CA."
+    : "Verificação de localização DESLIGADA — reportes voltam a não exigir GPS.";
 
   redirect(`/admin?msg=${encodeURIComponent(msg)}`);
 }
