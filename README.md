@@ -168,7 +168,7 @@ produção.
 | `GIPHY_API_KEY` | Chave gratuita do GIPHY (sem ela, a Home só omite o GIF) |
 | `CRON_SECRET` | Autoriza os dois crons (a Vercel envia `Authorization: Bearer`) |
 | `ADMIN_USER` / `ADMIN_PASSWORD` | Basic Auth do `/admin` (sem senha → 503) |
-| `LCCX_API_KEY` | API do lc.cx para os short links (`LCCX_API_BASE`/`LCCX_AUTH_HEADER` opcionais p/ ajustar endpoint) |
+| `LCCX_API_KEY` | API do lc.cx para os short links (`LCCX_API_BASE`/`LCCX_WORKSPACE`/`LCCX_DOMAIN_ID` opcionais) |
 | `SITE_URL` | URL pública usada como destino dos short links (`https://cacomp.xyz`) |
 
 Em produção, configure todas no dashboard da Vercel — o Redis do Marketplace
