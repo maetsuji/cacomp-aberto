@@ -186,14 +186,24 @@ nunca versione nem use geradores de QR online com eles).
 
 Segue **semver** (`major.minor.patch`, versão em `package.json`):
 
-- **`main`** → deploy de preview em [cacomp-aberto.vercel.app](https://cacomp-aberto.vercel.app).
-- **`release`** → produção em [cacomp.xyz](https://cacomp.xyz). Só deploya com novo commit nessa branch.
+- **`main`** → deploy de preview em [cacomp-aberto.vercel.app](https://cacomp-aberto.vercel.app). É a branch padrão do repo (onde o desenvolvimento acontece).
+- **`release`** → produção em [cacomp.xyz](https://cacomp.xyz). Só deploya com novo commit nessa branch. Na Vercel, é a "Production Branch" do projeto (Settings → Git), domínio `cacomp.xyz` atribuído à produção — os crons rodam sobre esse deploy. `main` ser a branch padrão do GitHub e `release` ser a branch de produção da Vercel são coisas independentes; não precisam coincidir.
 
-Fluxo: desenvolva em `main` → valide no preview → bump de versão →
-merge/fast-forward para `release` → tag `vX.Y.Z`. Na Vercel, a branch de
-produção do projeto é `release` (Settings → Git → Production Branch), com o
-domínio `cacomp.xyz` atribuído à produção; os crons rodam sobre o deploy de
-produção.
+Fluxo: desenvolva em `main` → valide no preview → abra um PR de `main` para
+`release` → adicione **uma label** (`major`, `minor` ou `patch`) indicando o
+tamanho da mudança → merge. A partir daí, dois workflows do GitHub Actions
+(`.github/workflows/`) cuidam do resto:
+
+1. **`release-label-check.yml`** — bloqueia o PR (status check vermelho) se
+   ele não tiver exatamente uma das labels `major`/`minor`/`patch`.
+2. **`release-tag.yml`** — dispara no merge: calcula a nova versão a partir
+   da label, atualiza `package.json`, cria e empurra a tag `vX.Y.Z`, publica
+   uma GitHub Release com changelog automático (PRs desde a última tag), e
+   abre um PR pequeno de `release` → `main` só com o bump de versão (evita
+   conflito de `version` no próximo PR).
+
+A única decisão manual que resta é escolher a label (major/minor/patch); tag,
+versão e changelog são 100% automáticos a partir daí.
 
 ## Variáveis de ambiente
 

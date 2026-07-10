@@ -43,7 +43,13 @@
       "Bash(docker run *)",
       "Bash(docker exec *)",
       "Bash(curl -s -u admin:troque-por-uma-senha-forte-local \"http://localhost:3100/admin\" -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/admin.html -w \"%{http_code}\\\\n\")",
-      "Bash(pkill -f \"next dev -p 3100\")"
+      "Bash(pkill -f \"next dev -p 3100\")",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(pip install *)",
+      "Bash(python3 -m pip install --quiet --user pyyaml)",
+      "Bash(npx --yes -p js-yaml js-yaml /home/maetsuji/unb/cacomp-aberto/.github/workflows/release-label-check.yml)",
+      "Bash(npx --yes -p js-yaml js-yaml /home/maetsuji/unb/cacomp-aberto/.github/workflows/release-tag.yml)"
     ]
   }
 }
