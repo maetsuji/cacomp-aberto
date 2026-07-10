@@ -15,7 +15,9 @@
       "Bash(curl -sL --max-time 15 \"https://documenter.gw.postman.com/api/view/8011a6f5-bb21-461a-bd04-fb147f940c35\" -w \"\\\\nview: %{http_code}\\\\n\")",
       "WebSearch",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(curl -sv --max-time 20 https://cacomp.xyz/admin -o /dev/null)",
+      "Bash(curl -s --max-time 20 https://cacomp.xyz/admin)"
     ]
   }
 }
