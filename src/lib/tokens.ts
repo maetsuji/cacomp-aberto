@@ -5,7 +5,7 @@ import { storeAvailable, storeGetJson, storeSetJson } from "./store";
  *
  * Os tokens de reporte vivem no Redis (não mais só em env vars) para
  * poderem ser rotacionados sem redeploy: os QR Codes impressos apontam
- * para short links (lc.cx), e a rotação atualiza o destino dos short
+ * para short links (short.io), e a rotação atualiza o destino dos short
  * links — a imagem impressa nunca muda.
  *
  * As env vars REPORT_TOKEN_INTERNAL/EXTERNAL continuam valendo como

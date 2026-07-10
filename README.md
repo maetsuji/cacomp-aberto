@@ -16,10 +16,10 @@ Dois QR Codes estáticos impressos no CA:
 
 | QR | Local | Aponta para | Efeito |
 |----|-------|-------------|--------|
-| Interno | mesa/parede dentro do CA | short link lc.cx → `/report?action=open&token=…` | reporta **ABERTO** |
-| Externo | porta do CA | short link lc.cx → `/report?action=close&token=…` | reporta **FECHADO** |
+| Interno | mesa/parede dentro do CA | `qr.cacomp.xyz/open` → `/report?action=open&token=…` | reporta **ABERTO** |
+| Externo | porta do CA | `qr.cacomp.xyz/close` → `/report?action=close&token=…` | reporta **FECHADO** |
 
-Os QRs impressos codificam **short links (lc.cx)**, não a URL com o token:
+Os QRs impressos codificam **short links (short.io)**, não a URL com o token:
 rotacionar o token = atualizar o destino do short link via API — a arte
 impressa nunca muda e o token não fica exposto no QR.
 
@@ -62,7 +62,7 @@ Página fechada por HTTP Basic Auth (`ADMIN_USER`/`ADMIN_PASSWORD` no
 middleware; sem senha configurada, responde 503). Nela dá para:
 
 - Ver os QR Codes atuais (SVG inline + download em PNG/SVG) — codificando os short links, estáveis entre rotações.
-- **Rotacionar tokens agora**: gera par novo, atualiza o destino dos short links no lc.cx e só então persiste (se o lc.cx falhar, nada muda e os QRs continuam válidos).
+- **Rotacionar tokens agora**: gera par novo, atualiza o destino dos short links no short.io e só então persiste (se o short.io falhar, nada muda e os QRs continuam válidos).
 - **Sincronizar short links**: recria/atualiza os links para os tokens atuais (primeiro setup ou reparo).
 
 ## Interface
@@ -107,8 +107,8 @@ src/
     ├── rate-limit.ts            # Hash anônimo de IP + janela entre reportes
     ├── report.ts                # Valida token → rate limit → persiste → revalida
     ├── tokens.ts                # Tokens rotacionáveis no Redis (fallback env)
-    ├── shortlink.ts             # Cliente lc.cx (criar/atualizar short links)
-    ├── rotate.ts                # Orquestra rotação: lc.cx primeiro, Redis depois
+    ├── shortlink.ts             # Cliente short.io (criar/atualizar short links)
+    ├── rotate.ts                # Orquestra rotação: short.io primeiro, Redis depois
     ├── auto-close.ts            # Regra do fechamento automático noturno
     └── gif.ts                   # GIF aleatório do GIPHY (rating g)
 scripts/
@@ -168,7 +168,7 @@ produção.
 | `GIPHY_API_KEY` | Chave gratuita do GIPHY (sem ela, a Home só omite o GIF) |
 | `CRON_SECRET` | Autoriza os dois crons (a Vercel envia `Authorization: Bearer`) |
 | `ADMIN_USER` / `ADMIN_PASSWORD` | Basic Auth do `/admin` (sem senha → 503) |
-| `LCCX_API_KEY` | API do lc.cx para os short links (`LCCX_API_BASE`/`LCCX_WORKSPACE`/`LCCX_DOMAIN_ID` opcionais) |
+| `SHORTIO_API_KEY` + `SHORTIO_DOMAIN` | API do short.io (secret key + domínio de encurtamento, ex. `qr.cacomp.xyz` — links fixos em `/open` e `/close`) |
 | `SITE_URL` | URL pública usada como destino dos short links (`https://cacomp.xyz`) |
 
 Em produção, configure todas no dashboard da Vercel — o Redis do Marketplace
