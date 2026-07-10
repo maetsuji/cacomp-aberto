@@ -1,0 +1,86 @@
+name: Release tag
+
+# Roda quando um PR para `release` é mergeado. Lê a label de bump
+# (major/minor/patch, já validada por release-label-check.yml), atualiza
+# package.json, cria a tag vX.Y.Z, publica a GitHub Release com changelog
+# automático, e abre um PR de sincronização da versão de volta para `main`
+# (evita conflito de "version" no próximo PR main -> release).
+on:
+  pull_request:
+    types: [closed]
+    branches: [release]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  tag-and-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+        with:
+          ref: release
+          fetch-depth: 0
+
+      - name: Determina o tipo de bump pela label do PR
+        id: bump
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          BUMP=$(echo "$LABELS" | jq -r '.[] | select(. == "major" or . == "minor" or . == "patch")' | head -n1)
+          if [ -z "$BUMP" ]; then
+            echo "::error::Nenhuma label major/minor/patch encontrada no PR mergeado."
+            exit 1
+          fi
+          echo "type=$BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Configura git como github-actions[bot]
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump de versão no package.json
+        id: version
+        run: |
+          npm version ${{ steps.bump.outputs.type }} --no-git-tag-version
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit do bump e push para release
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore(release): v${{ steps.version.outputs.version }}"
+          git push origin release
+
+      - name: Cria e empurra a tag
+        run: |
+          git tag -a "v${{ steps.version.outputs.version }}" -m "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Publica GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
+
+      - name: Traz o bump de versão para uma branch baseada em main
+        run: |
+          git fetch origin main
+          git switch -c sync-base origin/main
+          git checkout release -- package.json package-lock.json
+
+      - name: Abre PR de sincronização de versão para main
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: main
+          branch: chore/sync-version-v${{ steps.version.outputs.version }}
+          title: "chore: sincroniza versão v${{ steps.version.outputs.version }} em main"
+          body: >
+            PR automático: sincroniza `package.json`/`package-lock.json` com a
+            versão publicada em `release` (v${{ steps.version.outputs.version }}),
+            evitando conflito no campo `version` no próximo PR main → release.
+          commit-message: "chore(release): sincroniza versão v${{ steps.version.outputs.version }} em main"

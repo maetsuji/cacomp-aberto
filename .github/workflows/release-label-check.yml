@@ -1,0 +1,25 @@
+name: Release label check
+
+# Trava de segurança: um PR para `release` precisa declarar o tamanho do
+# bump (major/minor/patch) via label antes de poder ser mergeado. Sem isso,
+# o workflow release-tag.yml (que roda no merge) não saberia que versão gerar.
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+    branches: [release]
+
+jobs:
+  check-label:
+    if: github.event.pull_request.base.ref == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica label de versão (major/minor/patch)
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          COUNT=$(echo "$LABELS" | jq '[.[] | select(. == "major" or . == "minor" or . == "patch")] | length')
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Adicione exatamente uma label neste PR: major, minor ou patch."
+            exit 1
+          fi
+          echo "Label de versão OK."
