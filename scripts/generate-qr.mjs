@@ -53,7 +53,7 @@ if (isProd && Object.keys(env).length === 0) {
 
 const hostArg = args.find((a) => a.startsWith("--host="))?.split("=")[1];
 const baseUrl = isProd
-  ? env.SITE_URL ?? "https://cacomp-aberto.vercel.app" // URL real do deploy
+  ? env.SITE_URL ?? "https://cacomp.xyz" // domínio de produção (branch release)
   : `http://${hostArg ?? "localhost:3000"}`;
 
 const targets = [

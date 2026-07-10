@@ -14,10 +14,14 @@ custo de infraestrutura.
 
 Dois QR Codes estáticos impressos no CA:
 
-| QR | Local | URL | Efeito |
-|----|-------|-----|--------|
-| Interno | mesa/parede dentro do CA | `/report?action=open&token=…` | reporta **ABERTO** |
-| Externo | porta do CA | `/report?action=close&token=…` | reporta **FECHADO** |
+| QR | Local | Aponta para | Efeito |
+|----|-------|-------------|--------|
+| Interno | mesa/parede dentro do CA | short link lc.cx → `/report?action=open&token=…` | reporta **ABERTO** |
+| Externo | porta do CA | short link lc.cx → `/report?action=close&token=…` | reporta **FECHADO** |
+
+Os QRs impressos codificam **short links (lc.cx)**, não a URL com o token:
+rotacionar o token = atualizar o destino do short link via API — a arte
+impressa nunca muda e o token não fica exposto no QR.
 
 O fluxo do reporte (`src/app/report/route.ts` → `src/lib/report.ts`):
 
@@ -49,8 +53,17 @@ máximo ~23h normalmente. Regra (em `src/lib/auto-close.ts`):
 ### Anti-fraude sem login
 
 - **Rate limiting** por hash anônimo de IP (SET NX+EX atômico no Redis).
-- **Tokens secretos** só existem nas variáveis de ambiente e nos QR impressos.
+- **Tokens rotacionáveis**: vivem no Redis (fallback em env vars) e são trocados diariamente pelo cron das 06h — ou manualmente no `/admin`. O token anterior vale por 15 min de graça após a rotação.
 - **Histórico público**: os últimos 5 reportes anônimos aparecem na Home — a comunidade vê se alguém trollou e corrige escaneando o QR verdadeiro.
+
+### Painel /admin
+
+Página fechada por HTTP Basic Auth (`ADMIN_USER`/`ADMIN_PASSWORD` no
+middleware; sem senha configurada, responde 503). Nela dá para:
+
+- Ver os QR Codes atuais (SVG inline + download em PNG/SVG) — codificando os short links, estáveis entre rotações.
+- **Rotacionar tokens agora**: gera par novo, atualiza o destino dos short links no lc.cx e só então persiste (se o lc.cx falhar, nada muda e os QRs continuam válidos).
+- **Sincronizar short links**: recria/atualiza os links para os tokens atuais (primeiro setup ou reparo).
 
 ## Interface
 
@@ -77,8 +90,13 @@ src/
 │   ├── report/
 │   │   ├── route.ts             # GET do QR: processa e redireciona (PRG)
 │   │   └── result/page.tsx      # Tela "Obrigado!" / "Calma lá!" / "Link inválido"
-│   └── api/cron/auto-close/
-│       └── route.ts             # Endpoint do Vercel Cron (protegido por CRON_SECRET)
+│   ├── admin/
+│   │   ├── page.tsx             # Painel: QRs, tokens, rotação (Basic Auth)
+│   │   └── actions.ts           # Server Actions: rotacionar / sincronizar
+│   └── api/cron/
+│       ├── auto-close/route.ts  # Cron 00h: fechamento automático noturno
+│       └── rotate-tokens/route.ts # Cron 06h: rotação diária de tokens
+├── middleware.ts                # Basic Auth do /admin
 ├── components/
 │   ├── TimeAgo.tsx              # "há X minutos" no cliente
 │   └── RedirectHome.tsx         # Volta à Home 3s após o reporte
@@ -86,8 +104,11 @@ src/
     ├── types.ts                 # Schema (CaState, ReportEntry)
     ├── store.ts                 # Abstração Redis (REST ou cliente nativo)
     ├── status.ts                # Estado atual + histórico
-    ├── rate-limit.ts            # Hash anônimo de IP + janela de 20 min
+    ├── rate-limit.ts            # Hash anônimo de IP + janela entre reportes
     ├── report.ts                # Valida token → rate limit → persiste → revalida
+    ├── tokens.ts                # Tokens rotacionáveis no Redis (fallback env)
+    ├── shortlink.ts             # Cliente lc.cx (criar/atualizar short links)
+    ├── rotate.ts                # Orquestra rotação: lc.cx primeiro, Redis depois
     ├── auto-close.ts            # Regra do fechamento automático noturno
     └── gif.ts                   # GIF aleatório do GIPHY (rating g)
 scripts/
@@ -113,23 +134,42 @@ npm run generate-qr -- --host=SEU_IP_LOCAL:3000
 
 ## Gerando os QR Codes de produção
 
+O jeito recomendado é pelo **`/admin`** (QRs dos short links, estáveis entre
+rotações). O script continua disponível para QRs de URL direta:
+
 ```bash
-npm run generate-qr:prod   # aponta para https://cacomp-aberto.vercel.app
+npm run generate-qr:prod   # aponta para https://cacomp.xyz
 ```
 
 Os PNGs vão para `qrcodes/` (gitignored — as URLs embutem os tokens secretos;
 nunca versione nem use geradores de QR online com eles).
 
+## Release & deploy
+
+Segue **semver** (`major.minor.patch`, versão em `package.json`):
+
+- **`main`** → deploy de preview em [cacomp-aberto.vercel.app](https://cacomp-aberto.vercel.app).
+- **`release`** → produção em [cacomp.xyz](https://cacomp.xyz). Só deploya com novo commit nessa branch.
+
+Fluxo: desenvolva em `main` → valide no preview → bump de versão →
+merge/fast-forward para `release` → tag `vX.Y.Z`. Na Vercel, a branch de
+produção do projeto é `release` (Settings → Git → Production Branch), com o
+domínio `cacomp.xyz` atribuído à produção; os crons rodam sobre o deploy de
+produção.
+
 ## Variáveis de ambiente
 
 | Variável | Uso |
 |----------|-----|
-| `REPORT_TOKEN_INTERNAL` | Token do QR interno (`action=open`) |
-| `REPORT_TOKEN_EXTERNAL` | Token do QR externo (`action=close`) |
+| `REPORT_TOKEN_INTERNAL` | Token inicial do QR interno (`action=open`) — vira fallback após a 1ª rotação |
+| `REPORT_TOKEN_EXTERNAL` | Token inicial do QR externo (`action=close`) — idem |
 | `IP_HASH_SALT` | Salt do hash anônimo de IP (rate limiting) |
 | `REDIS_URL` *(ou `KV_REST_API_URL`+`KV_REST_API_TOKEN`)* | Conexão com o Redis |
 | `GIPHY_API_KEY` | Chave gratuita do GIPHY (sem ela, a Home só omite o GIF) |
-| `CRON_SECRET` | Autoriza o cron de fechamento automático (a Vercel envia `Authorization: Bearer`) |
+| `CRON_SECRET` | Autoriza os dois crons (a Vercel envia `Authorization: Bearer`) |
+| `ADMIN_USER` / `ADMIN_PASSWORD` | Basic Auth do `/admin` (sem senha → 503) |
+| `LCCX_API_KEY` | API do lc.cx para os short links (`LCCX_API_BASE`/`LCCX_AUTH_HEADER` opcionais p/ ajustar endpoint) |
+| `SITE_URL` | URL pública usada como destino dos short links (`https://cacomp.xyz`) |
 
 Em produção, configure todas no dashboard da Vercel — o Redis do Marketplace
 injeta `REDIS_URL` sozinho; as demais são manuais.

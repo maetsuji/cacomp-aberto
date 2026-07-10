@@ -8,7 +8,16 @@
       "Bash(convert /home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0] /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/cacomp_frame.png)",
       "Bash(convert \"/home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0]\" /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/cacomp_frame.png)",
       "Bash(magick identify *)",
-      "Bash(magick \"/home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0]\" -format \"%[fx:u.a]\" -crop 1x1+0+0 info:)"
+      "Bash(magick \"/home/maetsuji/unb/cacomp-aberto/public/cacomp_xyz.gif[0]\" -format \"%[fx:u.a]\" -crop 1x1+0+0 info:)",
+      "Bash(curl -sL --max-time 10 https://dev.lc.cx/)",
+      "Bash(grep -oE '\\(publishedId|documentId|view/[0-9a-zA-Z]+|\"id\":\"[^\"]{8,}\"\\)')",
+      "Bash(curl -sL --max-time 15 \"https://documenter.gw.postman.com/api/collections/8011a6f5-bb21-461a-bd04-fb147f940c35/published?segregateAuth=true&versionTag=latest\" -w \"\\\\npublished: %{http_code}\\\\n\")",
+      "Bash(curl -sL --max-time 15 \"https://documenter.gw.postman.com/api/view/8011a6f5-bb21-461a-bd04-fb147f940c35\" -w \"\\\\nview: %{http_code}\\\\n\")",
+      "WebSearch",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -sv --max-time 20 https://cacomp.xyz/admin -o /dev/null)",
+      "Bash(curl -s --max-time 20 https://cacomp.xyz/admin)"
     ]
   }
 }
