@@ -52,8 +52,11 @@ máximo ~23h normalmente. Regra (em `src/lib/auto-close.ts`):
 
 ### Anti-fraude sem login
 
-- **Rate limiting** por hash anônimo de IP (SET NX+EX atômico no Redis).
+- **Rate limiting por dispositivo**: um cookie anônimo (`ca_device`, UUID aleatório, sem dado pessoal, ~180 dias) identifica o navegador que reportou, em vez de só o IP — numa wifi compartilhada (ex. rede pública da UnB), pessoas diferentes não se bloqueiam mutuamente. Janela de 15 min por dispositivo.
+- **Teto frouxo por IP** (`REPORT_IP_FLOOD_CAP`, default 20/hora): rede de segurança contra scripts que não persistem cookies — não é a defesa principal, só evita flood automatizado.
+- **Circuit breaker diário** (`REPORT_DAILY_CAP`, default 500/dia): protege a cota gratuita do Redis contra picos de tráfego, checado antes de qualquer outra leitura.
 - **Tokens rotacionáveis**: vivem no Redis (fallback em env vars) e são trocados diariamente pelo cron das 06h — ou manualmente no `/admin`. O token anterior vale por 15 min de graça após a rotação.
+- **Geofence por GPS** (toggle no `/admin`, desligado por padrão): quando ligado, abrir o link do QR/NFC pede a localização do navegador (`/report/locating`) antes de completar o reporte, só aceitando dentro de um raio (`GEOFENCE_RADIUS_METERS`, default 150m) das coordenadas do CA (`GEOFENCE_LAT`/`GEOFENCE_LNG`). Existe porque rotacionar token **não** impede alguém de reportar de qualquer lugar usando o link/QR/NFC compartilhado — o próprio propósito do link é sempre apontar pro destino válido. ⚠️ É um **dissuasor de compartilhamento casual**, não uma prova inquebrável: como o check final compara `lat`/`lng` vindos da própria URL, alguém tecnicamente sofisticado poderia forjar coordenadas fixas. Funciona em qualquer rede (inclusive dados móveis), diferente de um allowlist de IP — por isso foi a opção escolhida.
 - **Histórico público**: os últimos 5 reportes anônimos aparecem na Home — a comunidade vê se alguém trollou e corrige escaneando o QR verdadeiro.
 
 ### Painel /admin
@@ -64,6 +67,39 @@ middleware; sem senha configurada, responde 503). Nela dá para:
 - Ver os QR Codes atuais (SVG inline + download em PNG/SVG) — codificando os short links, estáveis entre rotações.
 - **Rotacionar tokens agora**: gera par novo, atualiza o destino dos short links no short.io e só então persiste (se o short.io falhar, nada muda e os QRs continuam válidos).
 - **Sincronizar short links**: recria/atualiza os links para os tokens atuais (primeiro setup ou reparo).
+- **Ligar/desligar verificação de localização**: liga o geofence por GPS descrito acima. Fica desligado por padrão — bom para testar o fluxo de fora do CA (inclusive em casa) sem restrição; ligue só quando for operar de verdade no local.
+
+### Vercel: proteções gratuitas contra DDoS/flood
+
+Antes de divulgar o link publicamente, vale ativar manualmente o
+**Attack Challenge Mode** no dashboard da Vercel (Project → Firewall) —
+gratuito em todos os planos, desafia tráfego suspeito antes dele chegar
+no app, e não conta pra cota de uso. A mitigação DDoS L3/L4/L7 já é
+automática e gratuita sem nenhuma configuração. A arquitetura do projeto
+já ajuda: a Home é estática (servida da CDN, zero função por visita);
+só `/report`, `/admin` e os 2 crons tocam função serverless + Redis.
+
+### NFC: atalho de toque (tags NTAG215)
+
+As tags NFC usadas (**NTAG215**) são chips de memória NDEF simples, sem
+criptografia própria (isso só existiria em chips como NTAG 424 DNA, com
+recurso SUN/SDM de token rotativo por toque — não é o que foi comprado).
+Isso significa que tocar a tag é **tecnicamente equivalente a escanear o
+QR**: ela guarda o mesmo short link estático, lido sempre igual. Toda a
+segurança contra abuso vem das camadas do endpoint `/report` descritas
+acima (rate-limit por device, geofence etc.), que valem igualmente para
+quem chega via QR ou via toque — não há código de verificação específico
+pra tag.
+
+Provisionamento (manual, sem código):
+1. Pegue o short link final de cada ação no `/admin` (ex.: `report.cacomp.xyz/open`, `/close`).
+2. Grave cada link numa tag com um app de celular (ex.: "NFC Tools", Android/iOS) como registro NDEF do tipo URI.
+3. Cole cada tag na plaquinha correspondente — mesma topologia dos QRs (aberto dentro do CA, fechado na porta).
+
+Como a tag nunca muda, ela se beneficia automaticamente de qualquer
+melhoria futura nas proteções do endpoint (geofence, rate-limit), sem
+precisar regravar nada. Proteção própria da tag (per-toque, criptográfica)
+exigiria comprar tags NTAG 424 DNA à parte.
 
 ## Interface
 
@@ -88,11 +124,12 @@ src/
 │   ├── globals.css              # Tailwind v4, tema, .neon-text, .texture-healing
 │   ├── page.tsx                 # Home estática (ISR on-demand) + auto-close preguiçoso
 │   ├── report/
-│   │   ├── route.ts             # GET do QR: processa e redireciona (PRG)
-│   │   └── result/page.tsx      # Tela "Obrigado!" / "Calma lá!" / "Link inválido"
+│   │   ├── route.ts             # GET do QR/NFC: cookie de device, geofence, processa e redireciona (PRG)
+│   │   ├── locating/page.tsx    # Tela client-side que pede GPS quando o geofence está ligado
+│   │   └── result/page.tsx      # Tela "Obrigado!" / "Calma lá!" / "Fora do local" / etc.
 │   ├── admin/
-│   │   ├── page.tsx             # Painel: QRs, tokens, rotação (Basic Auth)
-│   │   └── actions.ts           # Server Actions: rotacionar / sincronizar
+│   │   ├── page.tsx             # Painel: QRs, tokens, rotação, toggle de geofence (Basic Auth)
+│   │   └── actions.ts           # Server Actions: rotacionar / sincronizar / ligar-desligar geofence
 │   └── api/cron/
 │       ├── auto-close/route.ts  # Cron 00h: fechamento automático noturno
 │       └── rotate-tokens/route.ts # Cron 06h: rotação diária de tokens
@@ -102,10 +139,11 @@ src/
 │   └── RedirectHome.tsx         # Volta à Home 3s após o reporte
 └── lib/
     ├── types.ts                 # Schema (CaState, ReportEntry)
-    ├── store.ts                 # Abstração Redis (REST ou cliente nativo)
+    ├── store.ts                 # Abstração Redis (REST ou cliente nativo) + storeIncrWithTTL
     ├── status.ts                # Estado atual + histórico
-    ├── rate-limit.ts            # Hash anônimo de IP + janela entre reportes
-    ├── report.ts                # Valida token → rate limit → persiste → revalida
+    ├── rate-limit.ts            # Rate-limit por device (cookie) + teto frouxo por IP
+    ├── geofence.ts              # Toggle de geofence + distância Haversine
+    ├── report.ts                # Cap diário → token → flood → device → geofence → persiste → revalida
     ├── tokens.ts                # Tokens rotacionáveis no Redis (fallback env)
     ├── shortlink.ts             # Cliente short.io (criar/atualizar short links)
     ├── rotate.ts                # Orquestra rotação: short.io primeiro, Redis depois
@@ -168,8 +206,11 @@ produção.
 | `GIPHY_API_KEY` | Chave gratuita do GIPHY (sem ela, a Home só omite o GIF) |
 | `CRON_SECRET` | Autoriza os dois crons (a Vercel envia `Authorization: Bearer`) |
 | `ADMIN_USER` / `ADMIN_PASSWORD` | Basic Auth do `/admin` (sem senha → 503) |
-| `SHORTIO_API_KEY` + `SHORTIO_DOMAIN` | API do short.io (secret key + domínio de encurtamento, ex. `qr.cacomp.xyz` — links fixos em `/open` e `/close`) |
+| `SHORTIO_API_KEY` + `SHORTIO_DOMAIN` | API do short.io (secret key + domínio de encurtamento, ex. `report.cacomp.xyz` — links fixos em `/open` e `/close`) |
 | `SITE_URL` | URL pública usada como destino dos short links (`https://cacomp.xyz`) |
+| `REPORT_DAILY_CAP` | Teto de requisições/dia a `/report` antes de qualquer leitura extra no Redis (default 500) |
+| `REPORT_IP_FLOOD_CAP` | Teto frouxo de reportes/hora por hash de IP, rede de segurança contra scripts (default 20) |
+| `GEOFENCE_LAT` / `GEOFENCE_LNG` / `GEOFENCE_RADIUS_METERS` | Coordenadas do CA e raio em metros para o geofence por GPS (liga/desliga é um toggle no `/admin`, não env var) |
 
 Em produção, configure todas no dashboard da Vercel — o Redis do Marketplace
 injeta `REDIS_URL` sozinho; as demais são manuais.

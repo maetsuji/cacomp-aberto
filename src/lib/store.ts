@@ -106,6 +106,31 @@ export async function storeLtrim(
   }
 }
 
+/**
+ * Incrementa atomicamente; a chamada que CRIA a chave (count===1) seta o
+ * TTL — janela "rolling" desde o primeiro hit, não reset em horário fixo.
+ * Sem store, retorna 0 (fail-open, mesmo padrão de storeAcquireLock).
+ */
+export async function storeIncrWithTTL(
+  key: string,
+  ttlSeconds: number
+): Promise<number> {
+  if (hasKvRest) {
+    const count = await kv.incr(key);
+    if (count === 1) await kv.expire(key, ttlSeconds);
+    return count;
+  }
+
+  if (hasRedisUrl) {
+    const client = await getRedisClient();
+    const count = await client.incr(key);
+    if (count === 1) await client.expire(key, ttlSeconds);
+    return count;
+  }
+
+  return 0;
+}
+
 export async function storeAcquireLock(
   key: string,
   ttlSeconds: number

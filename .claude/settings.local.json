@@ -36,7 +36,14 @@
       "Bash(dig +short close.cacomp.xyz A)",
       "Bash(curl -sL --max-time 15 https://developers.short.io/reference/get_links-expand.md)",
       "Bash(dig +short qr.cacomp.xyz CNAME)",
-      "Bash(dig +short qr.cacomp.xyz A)"
+      "Bash(dig +short qr.cacomp.xyz A)",
+      "Bash(grep -n \"^| \\\\`\" /home/maetsuji/unb/cacomp-aberto/README.md)",
+      "Bash(pkill -f \"next dev\\\\|next start\")",
+      "Bash(disown)",
+      "Bash(docker run *)",
+      "Bash(docker exec *)",
+      "Bash(curl -s -u admin:troque-por-uma-senha-forte-local \"http://localhost:3100/admin\" -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/admin.html -w \"%{http_code}\\\\n\")",
+      "Bash(pkill -f \"next dev -p 3100\")"
     ]
   }
 }
