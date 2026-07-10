@@ -85,12 +85,14 @@ async function lccxRequest(
   return { ok: res.ok, status: res.status, data };
 }
 
-// Formato confirmado da resposta (ver "Update a Short Link" na doc):
-// { id, shortlink, path, destination, domain, tags, note, created, updated }
+// Formato confirmado da resposta de /shorten:
+// { id, shorturl, path, destination, domain, tags, note, clicks, created, updated }
+// (a doc do endpoint de update usa "shortlink" no exemplo — aceitamos os
+// dois nomes, já que a resposta real observada usa "shorturl".)
 function parseLink(data: unknown): ShortLink | null {
   const d = (data ?? {}) as Record<string, unknown>;
   const id = d.id;
-  const short = d.shortlink;
+  const short = d.shorturl ?? d.shortlink;
   if (id === undefined || typeof short !== "string") return null;
   return { id: String(id), short_url: short };
 }
