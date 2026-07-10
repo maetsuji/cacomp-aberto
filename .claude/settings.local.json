@@ -49,7 +49,8 @@
       "Bash(pip install *)",
       "Bash(python3 -m pip install --quiet --user pyyaml)",
       "Bash(npx --yes -p js-yaml js-yaml /home/maetsuji/unb/cacomp-aberto/.github/workflows/release-label-check.yml)",
-      "Bash(npx --yes -p js-yaml js-yaml /home/maetsuji/unb/cacomp-aberto/.github/workflows/release-tag.yml)"
+      "Bash(npx --yes -p js-yaml js-yaml /home/maetsuji/unb/cacomp-aberto/.github/workflows/release-tag.yml)",
+      "Bash(npx --yes -p js-yaml js-yaml .github/workflows/release-tag.yml)"
     ]
   }
 }
