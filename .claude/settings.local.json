@@ -17,7 +17,15 @@
       "Bash(npm install *)",
       "Bash(npx tsc *)",
       "Bash(curl -sv --max-time 20 https://cacomp.xyz/admin -o /dev/null)",
-      "Bash(curl -s --max-time 20 https://cacomp.xyz/admin)"
+      "Bash(curl -s --max-time 20 https://cacomp.xyz/admin)",
+      "Bash(curl -sv --max-time 20 -u foo:bar https://cacomp.xyz/admin -o /dev/null)",
+      "Bash(dig +short cacomp.xyz A)",
+      "Bash(dig +short cacomp.xyz AAAA)",
+      "Bash(dig +short cacomp.xyz CNAME)",
+      "Bash(curl -sv --http1.1 --max-time 20 -o /dev/null -w \"\\\\nTOTAL: %{time_total}s | connect: %{time_connect}s | ttfb: %{time_starttransfer}s\\\\n\" https://cacomp.xyz/admin)",
+      "WebFetch(domain:lc.cx)",
+      "Bash(curl -sL -A 'Mozilla/5.0 \\(compatible; Googlebot/2.1; +http://www.google.com/bot.html\\)' --max-time 15 https://dev.lc.cx/ -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/lccx_bot.html -w '%{http_code}\\\\n')",
+      "Bash(curl -sL --max-time 15 'https://documenter.gw.postman.com/api/collections/10377150-8011a6f5-bb21-461a-bd04-fb147f940c35?segregateAuth=true&versionTag=latest' -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/lccx4.json -w 'http: %{http_code}\\\\n')"
     ]
   }
 }

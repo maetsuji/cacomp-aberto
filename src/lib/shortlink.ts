@@ -7,14 +7,14 @@ import type { ReportTokens } from "./tokens";
  * URL com o token. Rotacionar o token = atualizar o DESTINO do short
  * link via API ("Update a Short Link") — a arte impressa nunca muda.
  *
- * ⚠️ A doc oficial (dev.lc.cx) é um SPA do Postman que não expõe o spec
- * de forma raspável; os paths/headers abaixo seguem o padrão REST da
- * API v1 e são AJUSTÁVEIS por env var sem tocar em código:
- *   LCCX_API_BASE     (default https://lc.cx/api/v1)
- *   LCCX_AUTH_HEADER  (default Authorization; valor vira "Bearer <key>".
- *                      Qualquer outro nome de header recebe a key crua.)
- * Se a primeira chamada falhar com 401/404, confira na doc o path exato
- * e o nome do header e corrija via env — todo o acoplamento está aqui.
+ * Confirmado na doc oficial (dev.lc.cx):
+ *   POST  https://api.lc.cx/v1/shorten          (criar)
+ *     body: { destination, domain (UUID, obrigatório), note, ... }
+ *     "00000000-0000-0000-0000-000000000000" = domínio padrão lc.cx
+ *   PATCH https://api.lc.cx/v1/links/update/:id (atualizar)
+ *     body: { destination }
+ *   headers (as duas): apikey: <string>  (chave crua, NÃO é "Bearer <key>")
+ *   resposta (as duas): { id, shortlink, path, destination, ... }
  * ──────────────────────────────────────────────────────────────────── */
 
 const LINKS_KEY = "ca:shortlinks";
@@ -42,16 +42,18 @@ export function reportUrl(action: "open" | "close", token: string): string {
 }
 
 function apiBase(): string {
-  return (process.env.LCCX_API_BASE ?? "https://lc.cx/api/v1").replace(/\/$/, "");
+  return (process.env.LCCX_API_BASE ?? "https://api.lc.cx/v1").replace(/\/$/, "");
 }
 
 function authHeaders(): Record<string, string> {
-  const key = process.env.LCCX_API_KEY ?? "";
-  const headerName = process.env.LCCX_AUTH_HEADER ?? "Authorization";
-  return {
-    [headerName]: headerName === "Authorization" ? `Bearer ${key}` : key,
+  const headers: Record<string, string> = {
+    apikey: process.env.LCCX_API_KEY ?? "",
     "Content-Type": "application/json",
   };
+  if (process.env.LCCX_WORKSPACE) {
+    headers.workspace = process.env.LCCX_WORKSPACE;
+  }
+  return headers;
 }
 
 async function lccxRequest(
@@ -66,26 +68,46 @@ async function lccxRequest(
     signal: AbortSignal.timeout(8000),
     cache: "no-store",
   });
-  const data = await res.json().catch(() => null);
+
+  // Não descarta corpo não-JSON (ex: página de erro em HTML de um path
+  // errado) — isso é exatamente o que precisamos ver pra diagnosticar
+  // um 404/401 inesperado, em vez de esconder atrás de "null".
+  const raw = await res.text();
+  let data: unknown = null;
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = raw.slice(0, 300); // corpo cru (truncado) se não for JSON
+    }
+  }
+
   return { ok: res.ok, status: res.status, data };
 }
 
-// Respostas de shorteners variam em envelope/nomes; tenta os campos comuns.
+// Formato confirmado da resposta (ver "Update a Short Link" na doc):
+// { id, shortlink, path, destination, domain, tags, note, created, updated }
 function parseLink(data: unknown): ShortLink | null {
   const d = (data ?? {}) as Record<string, unknown>;
-  const inner = (d.data ?? d.link ?? d) as Record<string, unknown>;
-  const id = inner.id ?? inner.link_id ?? inner.slug;
-  const short =
-    inner.short_url ?? inner.shortUrl ?? inner.short_link ?? inner.short;
+  const id = d.id;
+  const short = d.shortlink;
   if (id === undefined || typeof short !== "string") return null;
   return { id: String(id), short_url: short };
 }
 
+// UUID do domínio "lc.cx" padrão — usado quando não há domínio próprio
+// configurado na conta (ver LCCX_DOMAIN_ID).
+const LCCX_DEFAULT_DOMAIN = "00000000-0000-0000-0000-000000000000";
+
 async function createShortLink(
   targetUrl: string,
-  title: string
+  note: string
 ): Promise<ShortLink> {
-  const res = await lccxRequest("POST", "/links", { url: targetUrl, title });
+  const res = await lccxRequest("POST", "/shorten", {
+    destination: targetUrl,
+    domain: process.env.LCCX_DOMAIN_ID ?? LCCX_DEFAULT_DOMAIN,
+    note,
+  });
   const link = parseLink(res.data);
   if (!res.ok || !link) {
     throw new Error(
@@ -96,7 +118,9 @@ async function createShortLink(
 }
 
 async function updateShortLink(id: string, targetUrl: string): Promise<void> {
-  const res = await lccxRequest("PUT", `/links/${id}`, { url: targetUrl });
+  const res = await lccxRequest("PATCH", `/links/update/${id}`, {
+    destination: targetUrl,
+  });
   if (!res.ok) {
     throw new Error(
       `lc.cx update falhou (HTTP ${res.status}): ${JSON.stringify(res.data)}`
@@ -124,18 +148,18 @@ export async function syncShortLinks(
   }
 
   const targets = [
-    { action: "open" as const, title: "CA-Aberto: QR interno (abrir)" },
-    { action: "close" as const, title: "CA-Aberto: QR externo (fechar)" },
+    { action: "open" as const, note: "CA-Aberto: QR interno (abrir)" },
+    { action: "close" as const, note: "CA-Aberto: QR externo (fechar)" },
   ];
 
-  for (const { action, title } of targets) {
+  for (const { action, note } of targets) {
     const target = reportUrl(action, tokens[action]);
     try {
       const existing = links[action];
       if (existing) {
         await updateShortLink(existing.id, target);
       } else {
-        links[action] = await createShortLink(target, title);
+        links[action] = await createShortLink(target, note);
       }
     } catch (err) {
       errors.push(`${action}: ${err instanceof Error ? err.message : err}`);
