@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { HEX_COLOR, resetBlobTheme, setBlobTheme } from "@/lib/blob-theme";
 import { isGeofenceEnabled, setGeofenceEnabled } from "@/lib/geofence";
 import { rotateAndSync } from "@/lib/rotate";
 import { syncShortLinks } from "@/lib/shortlink";
@@ -34,6 +35,59 @@ export async function toggleGeofenceAction() {
     : "Verificação de localização DESLIGADA — reportes voltam a não exigir GPS.";
 
   redirect(`/admin?msg=${encodeURIComponent(msg)}`);
+}
+
+/**
+ * Salva as cores dos blobs escolhidas em /admin/blobs e revalida a Home
+ * na hora — todo visitante passa a ver as novas cores (a Home é ISR e
+ * relê o tema do Redis a cada regeneração).
+ */
+export async function saveBlobThemeAction(formData: FormData) {
+  const read = (name: string): string | null => {
+    const value = String(formData.get(name) ?? "")
+      .trim()
+      .toLowerCase();
+    return HEX_COLOR.test(value) ? value : null;
+  };
+
+  const openA = read("openA");
+  const openB = read("openB");
+  const closedA = read("closedA");
+  const closedB = read("closedB");
+
+  if (!openA || !openB || !closedA || !closedB) {
+    redirect(
+      `/admin/blobs?msg=${encodeURIComponent(
+        "Cor inválida — use o formato #rrggbb em todos os campos."
+      )}`
+    );
+  }
+
+  await setBlobTheme({
+    OPEN: { blobA: openA, blobB: openB },
+    CLOSED: { blobA: closedA, blobB: closedB },
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/blobs");
+
+  redirect(
+    `/admin/blobs?msg=${encodeURIComponent(
+      "Cores salvas — a Home já mostra o novo fundo para todo mundo."
+    )}`
+  );
+}
+
+/** Apaga o tema salvo e volta às cores padrão do design. */
+export async function resetBlobThemeAction() {
+  await resetBlobTheme();
+  revalidatePath("/");
+  revalidatePath("/admin/blobs");
+
+  redirect(
+    `/admin/blobs?msg=${encodeURIComponent(
+      "Cores restauradas para o padrão do design."
+    )}`
+  );
 }
 
 /** Recria/atualiza os short links para os tokens ATUAIS, sem rotacionar. */

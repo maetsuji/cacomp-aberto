@@ -68,6 +68,7 @@ middleware; sem senha configurada, responde 503). Nela dá para:
 - **Rotacionar tokens agora**: gera par novo, atualiza o destino dos short links no short.io e só então persiste (se o short.io falhar, nada muda e os QRs continuam válidos).
 - **Sincronizar short links**: recria/atualiza os links para os tokens atuais (primeiro setup ou reparo).
 - **Ligar/desligar verificação de localização**: liga o geofence por GPS descrito acima. Fica desligado por padrão — bom para testar o fluxo de fora do CA (inclusive em casa) sem restrição; ligue só quando for operar de verdade no local.
+- **Customizar as cores do fundo** (tab `/admin/blobs`): troca as duas cores dos blobs de cada estado com preview ao vivo em miniatura. Salvar grava o tema no Redis e revalida a Home na hora — vale para todos os visitantes, sem redeploy. Sem tema salvo (ou sem Redis), valem as cores padrão do código (`src/lib/blob-theme.ts`).
 
 ### Vercel: proteções gratuitas contra DDoS/flood
 
@@ -129,7 +130,11 @@ src/
 │   │   └── result/page.tsx      # Tela "Obrigado!" / "Calma lá!" / "Fora do local" / etc.
 │   ├── admin/
 │   │   ├── page.tsx             # Painel: QRs, tokens, rotação, toggle de geofence (Basic Auth)
-│   │   └── actions.ts           # Server Actions: rotacionar / sincronizar / ligar-desligar geofence
+│   │   ├── AdminTabs.tsx        # Navegação em tabs do painel
+│   │   ├── actions.ts           # Server Actions: rotacionar / sincronizar / geofence / cores dos blobs
+│   │   └── blobs/
+│   │       ├── page.tsx         # Tab de cores do fundo (preview ao vivo + salvar)
+│   │       └── BlobThemeEditor.tsx # Editor client-side com preview em miniatura
 │   └── api/cron/
 │       ├── auto-close/route.ts  # Cron 00h: fechamento automático noturno
 │       └── rotate-tokens/route.ts # Cron 06h: rotação diária de tokens
@@ -148,6 +153,7 @@ src/
     ├── shortlink.ts             # Cliente short.io (criar/atualizar short links)
     ├── rotate.ts                # Orquestra rotação: short.io primeiro, Redis depois
     ├── auto-close.ts            # Regra do fechamento automático noturno
+    ├── blob-theme.ts            # Cores customizáveis dos blobs (Redis; defaults do design)
     └── gif.ts                   # GIF aleatório do GIPHY (rating g)
 scripts/
 └── generate-qr.mjs              # Gera os PNGs dos QR Codes (dev e produção)

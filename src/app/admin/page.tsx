@@ -8,6 +8,7 @@ import {
 import { getCaState } from "@/lib/status";
 import { getReportTokens } from "@/lib/tokens";
 import { rotateNowAction, syncLinksAction, toggleGeofenceAction } from "./actions";
+import { AdminTabs } from "./AdminTabs";
 
 // Página administrativa (protegida por Basic Auth no middleware).
 // Sempre dinâmica: mostra tokens e links vigentes, nunca de cache.
@@ -77,6 +78,8 @@ export default async function AdminPage({ searchParams }: Props) {
                 })}
           </p>
         </header>
+
+        <AdminTabs active="geral" />
 
         {msg && (
           <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm">
