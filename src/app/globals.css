@@ -11,16 +11,25 @@
 body {
   /* Peso padrão do sistema: Inter SemiBold. */
   font-weight: 600;
-  /* Transição suave da cor de fundo quando o status muda entre visitas. */
-  transition: background-color 300ms ease;
+  /* Base escura dos dois estados fica AQUI (propaga pro canvas, atrás
+   * de tudo) e não no <main>: os blobs têm z-index negativo, e filhos
+   * com z-index negativo pintam atrás do background de blocos em fluxo
+   * como o main — um main opaco os esconderia por completo. */
+  background-color: #09090b; /* zinc-950, igual ao themeColor do viewport */
 }
 
-/* Texture healing da Monaspace: a fonte redistribui o espaço entre
- * pares de glifos desequilibrados (ex: "rn", "il") via alternates
- * contextuais. Basta garantir que a feature "calt" esteja ativa —
- * alguns resets/utilities de fonte mono a desligam. */
-.texture-healing {
-  font-feature-settings: "calt" 1;
+/* ── Fonte da placa ABERTO/FECHADO: Tilt Neon ──
+ * Glifos construídos como tubos de neon de vitrine. XROT/YROT são os
+ * eixos variáveis de rotação da família Tilt: inclinam cada glifo como
+ * uma placa vista em perspectiva (carregados no next/font via `axes`,
+ * ver layout.tsx). */
+.status-font {
+  font-family: var(--font-tilt), sans-serif;
+  font-weight: 400; /* único peso da Tilt Neon */
+  font-variation-settings:
+    "XROT" 10,
+    "YROT" -10;
+  letter-spacing: 0.02em;
 }
 
 /* Efeito de placa de neon: núcleo quase branco (o "tubo aceso") com
@@ -35,4 +44,155 @@ body {
     0 0 18px var(--neon-color),
     0 0 40px var(--neon-color),
     0 0 96px var(--neon-color-dim, var(--neon-color));
+}
+
+/* ── Fundo vivo: blobs luminosos flutuando ──
+ * Camada fixa atrás do conteúdo ("placa de neon à noite"): manchas de
+ * luz na cor do estado (--blob-a/--blob-b, setadas inline no <main>)
+ * derretidas por um blur ESTÁTICO — só o transform é animado, que é
+ * composto na GPU; animar filter/blur travaria em celular. Durações
+ * dessincronizadas pra deriva nunca parecer um loop. */
+.blob-field {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  mix-blend-mode: screen;
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.blob-1 {
+  top: -10%;
+  left: -15%;
+  width: 70vmin;
+  height: 70vmin;
+  background: radial-gradient(circle at 30% 30%, var(--blob-a), transparent 70%);
+  animation: blob-drift-1 26s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  bottom: -15%;
+  right: -10%;
+  width: 60vmin;
+  height: 60vmin;
+  background: radial-gradient(circle at 60% 40%, var(--blob-b), transparent 70%);
+  animation: blob-drift-2 34s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+  top: 35%;
+  left: 45%;
+  width: 50vmin;
+  height: 50vmin;
+  background: radial-gradient(circle at 50% 50%, var(--blob-a), transparent 70%);
+  opacity: 0.3;
+  animation: blob-drift-3 18s ease-in-out infinite alternate;
+}
+
+@keyframes blob-drift-1 {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(12vw, 8vh) scale(1.15);
+  }
+}
+
+@keyframes blob-drift-2 {
+  from {
+    transform: translate(0, 0) scale(1.1);
+  }
+  to {
+    transform: translate(-10vw, -10vh) scale(0.9);
+  }
+}
+
+@keyframes blob-drift-3 {
+  from {
+    transform: translate(0, 0) scale(0.9) rotate(0deg);
+  }
+  to {
+    transform: translate(-14vw, 6vh) scale(1.2) rotate(20deg);
+  }
+}
+
+/* Grain sutil por cima dos blobs: dá textura de cena iluminada e
+ * disfarça o banding que gradientes borrados criam em telas OLED. */
+.blob-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none;
+  }
+}
+
+/* ── Preview em miniatura dos blobs (tab /admin/blobs) ──
+ * Mesma receita da Home num card pequeno: reusa .blob/.blob-N
+ * (gradiente, blend, keyframes) e só reescala tamanho/posição/blur para
+ * caber no container. `isolation` cria um stacking context próprio: o
+ * mix-blend-mode: screen dos blobs compõe contra o fundo escuro do card,
+ * não contra o que estiver atrás na página. */
+.blob-preview {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #09090b;
+}
+
+.blob-preview .blob {
+  filter: blur(24px);
+}
+
+.blob-preview .blob-1 {
+  top: -30%;
+  left: -10%;
+  width: 55%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.blob-preview .blob-2 {
+  bottom: -35%;
+  right: -10%;
+  width: 50%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.blob-preview .blob-3 {
+  top: 15%;
+  left: 40%;
+  width: 45%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* ── Liquid glass: painéis translúcidos sobre os blobs ──
+ * Vidro fosco (blur + saturate no que passa atrás), borda hairline
+ * translúcida e highlight interno no topo imitando vidro curvo. A cor
+ * do estado atravessa o vidro vinda dos blobs — por isso o vidro em si
+ * é neutro. */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 1rem;
 }

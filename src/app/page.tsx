@@ -1,5 +1,6 @@
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
+import { getBlobTheme } from "@/lib/blob-theme";
 import { getRandomGif } from "@/lib/gif";
 import { AUTO_CLOSE_REPORTER_ID, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
@@ -31,7 +32,6 @@ export const revalidate = 300;
 const THEME: Record<
   CaStatus,
   {
-    bg: string;
     glow: string; // cor saturada do brilho externo da placa de neon
     glowDim: string; // camada mais externa/suave do brilho
     label: string;
@@ -39,8 +39,10 @@ const THEME: Record<
     hint: string;
   }
 > = {
+  // As cores dos blobs do fundo não vivem mais aqui: são customizáveis
+  // pela tab /admin/blobs e lidas do Redis via getBlobTheme() (defaults
+  // em src/lib/blob-theme.ts).
   OPEN: {
-    bg: "bg-green-700",
     glow: "#69ffa0",
     glowDim: "#00ff5e",
     label: "ABERTO",
@@ -48,7 +50,6 @@ const THEME: Record<
     hint: "Alguém confirmou que o CA está aberto!",
   },
   CLOSED: {
-    bg: "bg-red-950",
     glow: "#dc6a6a",
     glowDim: "#ff0000",
     label: "FECHADO",
@@ -80,16 +81,36 @@ export default async function HomePage() {
   // como o Hobby só permite cron 1x/dia, as checagens de hora em hora da
   // madrugada acontecem aqui, pegando carona na regeneração ISR.
   const { state } = await maybeAutoClose();
-  const [reports, gifUrl] = await Promise.all([
+  const [reports, gifUrl, blobTheme] = await Promise.all([
     getRecentReports(5),
     getRandomGif(GIF_TAG[state.current_status]),
+    getBlobTheme(),
   ]);
 
   const theme = THEME[state.current_status];
+  const blobs = blobTheme[state.current_status];
   const isOpen = state.current_status === "OPEN";
 
+  // Sem cor de fundo no <main> de propósito: a base escura vive no body
+  // (globals.css) pra não pintar por cima dos blobs de z-index negativo.
   return (
-    <main className={`flex min-h-dvh flex-col text-zinc-50 ${theme.bg}`}>
+    <main
+      className="flex min-h-dvh flex-col text-zinc-50"
+      style={
+        {
+          "--blob-a": blobs.blobA,
+          "--blob-b": blobs.blobB,
+        } as React.CSSProperties
+      }
+    >
+      {/* ── Fundo vivo: blobs de luz na cor do estado (decorativo).
+          Fica numa camada fixa atrás de tudo; animação e blur em
+          globals.css (.blob-field / .blob). ── */}
+      <div className="blob-field" aria-hidden>
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+      </div>
       {/* ── Micro header: wordart do cacomp.xyz, só marca visual ── */}
       <header className="flex justify-center pt-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- GIF
@@ -109,12 +130,12 @@ export default async function HomePage() {
           o CACOMP está:
         </p>
 
-        {/* Monaspace Neon com texture healing (calt) + efeito de placa de
-            neon (núcleo claro + brilho externo em camadas, ver .neon-text
-            em globals.css). font-extrabold porque o eixo wght da variável
-            vai até 800, não 900. */}
+        {/* Tilt Neon inclinada em perspectiva via .status-font (XROT/YROT,
+            ver globals.css) + efeito de placa de neon (núcleo claro +
+            brilho externo em camadas, ver .neon-text). Sem utility de
+            peso: a Tilt só tem 400, definido na própria .status-font. */}
         <h1
-          className="texture-healing neon-text font-mono text-6xl font-extrabold tracking-tight sm:text-7xl"
+          className="neon-text status-font text-6xl sm:text-7xl"
           style={
             {
               "--neon-color": theme.glow,
@@ -126,19 +147,22 @@ export default async function HomePage() {
         </h1>
 
         {gifUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- GIF
-          // animado de domínio externo/variável (CDN do GIPHY); next/image
-          // exigiria remotePatterns amplo e pode quebrar a animação.
-          <img
-            src={gifUrl}
-            alt={
-              isOpen
-                ? "GIF de comemoração — polegar para cima"
-                : "GIF de decepção — polegar para baixo"
-            }
-            className="h-36 w-auto rounded-xl shadow-lg sm:h-44"
-            loading="lazy"
-          />
+          <div className="glass p-1.5">
+            {/* eslint-disable-next-line @next/next/no-img-element -- GIF
+                animado de domínio externo/variável (CDN do GIPHY);
+                next/image exigiria remotePatterns amplo e pode quebrar a
+                animação. */}
+            <img
+              src={gifUrl}
+              alt={
+                isOpen
+                  ? "GIF de comemoração — polegar para cima"
+                  : "GIF de decepção — polegar para baixo"
+              }
+              className="h-36 w-auto rounded-xl sm:h-44"
+              loading="lazy"
+            />
+          </div>
         )}
 
         <p className="text-base opacity-80">
@@ -148,12 +172,10 @@ export default async function HomePage() {
         <p className="mt-6 max-w-xs text-sm opacity-60">{theme.hint}</p>
       </section>
 
-      {/* ── Feed de transparência: últimos 5 reportes anônimos ── */}
-      <footer
-        className={`px-6 pb-8 pt-4 ${
-          isOpen ? "border-t border-green-600/40" : "border-t border-zinc-800"
-        }`}
-      >
+      {/* ── Feed de transparência: últimos 5 reportes anônimos, num
+          painel de vidro sobre os blobs (a cor do estado atravessa o
+          vidro vinda do fundo — o painel em si é neutro). ── */}
+      <footer className="glass mx-4 mb-6 px-6 pb-6 pt-4 sm:mx-auto sm:w-full sm:max-w-xl">
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest opacity-60">
           Últimos reportes
         </h2>

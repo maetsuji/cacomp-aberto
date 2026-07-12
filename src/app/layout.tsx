@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Tilt_Neon } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -12,14 +12,25 @@ const inter = Inter({
   display: "swap",
 });
 
-// Monaspace Neon (variável) — usada no status ABERTO/FECHADO.
-// O texture healing da Monaspace é implementado via feature OpenType
-// "calt", ativada no globals.css (.texture-healing).
+// Monaspace Neon (variável) — usada nos textos mono (ex.: /admin).
 const monaspaceNeon = localFont({
   src: "../fonts/MonaspaceNeonVF.woff2",
   variable: "--font-monaspace",
   display: "swap",
   weight: "200 800", // faixa do eixo wght da variável
+});
+
+// Tilt Neon: a fonte da placa ABERTO/FECHADO — glifos construídos como
+// tubos de neon de vitrine. Os eixos variáveis XROT/YROT inclinam os
+// glifos como uma placa vista em perspectiva; os valores (10/-10) são
+// aplicados via font-variation-settings no globals.css (.status-font).
+const tiltNeon = Tilt_Neon({
+  subsets: ["latin"],
+  variable: "--font-tilt",
+  display: "swap",
+  // Sem `weight`: next/font exige weight ausente/"variable" quando se
+  // carregam eixos extras (a Tilt Neon só tem o peso 400 mesmo).
+  axes: ["XROT", "YROT"],
 });
 
 export const metadata: Metadata = {
@@ -36,7 +47,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${monaspaceNeon.variable}`}>
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} ${monaspaceNeon.variable} ${tiltNeon.variable}`}
+    >
       <body className="antialiased">{children}</body>
     </html>
   );
