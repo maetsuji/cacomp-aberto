@@ -64,7 +64,8 @@
       "Bash(curl -s http://localhost:3000/api/icon)",
       "Bash(curl -s http://localhost:3000)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(python3)"
     ]
   }
 }
