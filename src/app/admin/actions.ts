@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { HEX_COLOR, resetBlobTheme, setBlobTheme } from "@/lib/blob-theme";
+import {
+  DEFAULT_FLICKER_SETTINGS,
+  FLICKER_LIMITS,
+  resetFlickerSettings,
+  setFlickerSettings,
+} from "@/lib/flicker-settings";
 import { isGeofenceEnabled, setGeofenceEnabled } from "@/lib/geofence";
 import { rotateAndSync } from "@/lib/rotate";
 import { syncShortLinks } from "@/lib/shortlink";
@@ -86,6 +92,60 @@ export async function resetBlobThemeAction() {
   redirect(
     `/admin/blobs?msg=${encodeURIComponent(
       "Cores restauradas para o padrão do design."
+    )}`
+  );
+}
+
+/**
+ * Salva os parâmetros do flicker de neon escolhidos em /admin/flicker e
+ * revalida a Home na hora (mesmo mecanismo do tema dos blobs).
+ */
+export async function saveFlickerSettingsAction(formData: FormData) {
+  const readNum = (name: string, min: number, max: number, fallback: number): number => {
+    const n = Number(formData.get(name));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  };
+
+  await setFlickerSettings({
+    enabled: formData.get("enabled") === "on",
+    onDuration: readNum(
+      "onDuration",
+      FLICKER_LIMITS.onDuration.min,
+      FLICKER_LIMITS.onDuration.max,
+      DEFAULT_FLICKER_SETTINGS.onDuration
+    ),
+    ambientInterval: readNum(
+      "ambientInterval",
+      FLICKER_LIMITS.ambientInterval.min,
+      FLICKER_LIMITS.ambientInterval.max,
+      DEFAULT_FLICKER_SETTINGS.ambientInterval
+    ),
+    intensity: readNum(
+      "intensity",
+      FLICKER_LIMITS.intensity.min,
+      FLICKER_LIMITS.intensity.max,
+      DEFAULT_FLICKER_SETTINGS.intensity
+    ),
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/flicker");
+
+  redirect(
+    `/admin/flicker?msg=${encodeURIComponent(
+      "Parâmetros do flicker salvos — a Home já usa os novos valores para todo mundo."
+    )}`
+  );
+}
+
+/** Apaga a config salva e volta aos parâmetros padrão do flicker. */
+export async function resetFlickerSettingsAction() {
+  await resetFlickerSettings();
+  revalidatePath("/");
+  revalidatePath("/admin/flicker");
+
+  redirect(
+    `/admin/flicker?msg=${encodeURIComponent(
+      "Flicker restaurado para os parâmetros padrão."
     )}`
   );
 }

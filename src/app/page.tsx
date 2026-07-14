@@ -1,6 +1,7 @@
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
 import { getBlobTheme } from "@/lib/blob-theme";
+import { getFlickerSettings } from "@/lib/flicker-settings";
 import { getRandomGif } from "@/lib/gif";
 import { AUTO_CLOSE_REPORTER_ID, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
@@ -47,14 +48,14 @@ const THEME: Record<
     glowDim: "#00ff5e",
     label: "ABERTO",
     emoji: "🟢",
-    hint: "Alguém confirmou que o CA está aberto!",
+    hint: "Fecharam o CA? Escaneie o QR na porta!",
   },
   CLOSED: {
     glow: "#dc6a6a",
     glowDim: "#ff0000",
     label: "FECHADO",
     emoji: "🔴",
-    hint: "Abriram o CA? Confirme pelo QR Code lá dentro!",
+    hint: "Abriram o CA? Escaneie o QR lá dentro!",
   },
 };
 
@@ -81,10 +82,11 @@ export default async function HomePage() {
   // como o Hobby só permite cron 1x/dia, as checagens de hora em hora da
   // madrugada acontecem aqui, pegando carona na regeneração ISR.
   const { state } = await maybeAutoClose();
-  const [reports, gifUrl, blobTheme] = await Promise.all([
+  const [reports, gifUrl, blobTheme, flicker] = await Promise.all([
     getRecentReports(5),
     getRandomGif(GIF_TAG[state.current_status]),
     getBlobTheme(),
+    getFlickerSettings(),
   ]);
 
   const theme = THEME[state.current_status];
@@ -112,7 +114,7 @@ export default async function HomePage() {
         <div className="blob blob-3" />
       </div>
       {/* ── Micro header: wordart do cacomp.xyz, só marca visual ── */}
-      <header className="flex justify-center pt-4">
+      <header className="flex justify-center pt-4 pb-4">
         {/* eslint-disable-next-line @next/next/no-img-element -- GIF
             animado local; next/image não otimiza GIF (exigiria
             `unoptimized`) e pode quebrar a animação. */}
@@ -135,11 +137,16 @@ export default async function HomePage() {
             brilho externo em camadas, ver .neon-text). Sem utility de
             peso: a Tilt só tem 400, definido na própria .status-font. */}
         <h1
-          className="neon-text status-font text-6xl sm:text-7xl"
+          className={`neon-text status-font text-6xl sm:text-7xl${
+            flicker.enabled ? " neon-flicker" : ""
+          }`}
           style={
             {
               "--neon-color": theme.glow,
               "--neon-color-dim": theme.glowDim,
+              "--flicker-on-duration": `${flicker.onDuration}s`,
+              "--flicker-ambient-duration": `${flicker.ambientInterval}s`,
+              "--flicker-intensity": flicker.intensity,
             } as React.CSSProperties
           }
         >
@@ -169,7 +176,9 @@ export default async function HomePage() {
           Atualizado <TimeAgo iso={state.updated_at} />
         </p>
 
-        <p className="mt-6 max-w-xs text-sm opacity-60">{theme.hint}</p>
+        <p className="mt-6 max-w-xs pb-4 text-sm opacity-60">
+          {theme.hint}
+        </p>
       </section>
 
       {/* ── Feed de transparência: últimos 5 reportes anônimos, num

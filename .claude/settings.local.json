@@ -65,7 +65,17 @@
       "Bash(curl -s http://localhost:3000)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(python3)"
+      "Bash(python3)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(find / -maxdepth 6 -iname \"*playwright*\" -not -path \"*/node_modules/.cache/*\")",
+      "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"home:%{http_code}\\\\n\")",
+      "Bash(curl -s -u \"admin:troque-por-uma-senha-forte-local\" http://localhost:3000/admin -o /dev/null -w \"admin:%{http_code}\\\\n\")",
+      "Bash(curl -s -u \"admin:troque-por-uma-senha-forte-local\" http://localhost:3000/admin/blobs -o /dev/null -w \"admin-blobs:%{http_code}\\\\n\")",
+      "Bash(curl -s -u \"admin:troque-por-uma-senha-forte-local\" http://localhost:3000/admin/flicker -o /dev/null -w \"admin-flicker:%{http_code}\\\\n\")",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/ --max-time 3)"
     ]
   }
 }
