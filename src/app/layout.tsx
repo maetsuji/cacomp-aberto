@@ -37,6 +37,9 @@ export const metadata: Metadata = {
   title: "CA Aberto? — CACOMP UnB",
   description:
     "O Centro Acadêmico de Computação da UnB está aberto agora? Status em tempo real, reportado pela comunidade.",
+  icons: {
+    icon: "/api/icon", // aponta para src/app/api/icon/route.ts (route handler dinâmico)
+  },
 };
 
 export const viewport: Viewport = {
