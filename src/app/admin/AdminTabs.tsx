@@ -5,6 +5,7 @@ import Link from "next/link";
 const TABS = [
   { id: "geral", href: "/admin", label: "Geral" },
   { id: "blobs", href: "/admin/blobs", label: "Cores do fundo" },
+  { id: "flicker", href: "/admin/flicker", label: "Flicker" },
 ] as const;
 
 export type AdminTabId = (typeof TABS)[number]["id"];

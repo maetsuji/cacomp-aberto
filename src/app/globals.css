@@ -46,6 +46,84 @@ body {
     0 0 96px var(--neon-color-dim, var(--neon-color));
 }
 
+/* ── Flicker de neon: burst de "power-on" + instabilidade ambiente ──
+ * Só modula opacity (afeta cor + text-shadow juntos = "tubo inteiro"
+ * piscando, cor-agnóstico). Duas animações na mesma propriedade: a 2ª
+ * (ambiente) tem delay = duração da 1ª (power-on), então assume o
+ * controle exatamente quando o power-on termina (regra da cascata: a
+ * última da lista vence enquanto ativa). Classe separada de .neon-text
+ * pra não forçar o piscar no preview de /admin/blobs, que reusa
+ * .neon-text sem isso. Durações e intensidade vêm de custom properties
+ * (setadas inline em page.tsx a partir de /admin/flicker); os fatores em
+ * cada keyframe foram calibrados pra intensity=0.5 = design original. */
+.neon-flicker {
+  animation:
+    neon-flicker-on var(--flicker-on-duration, 1.6s) linear 1 forwards,
+    neon-flicker-ambient var(--flicker-ambient-duration, 13s) linear
+      var(--flicker-on-duration, 1.6s) infinite;
+}
+
+@keyframes neon-flicker-on {
+  0% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 1.6);
+  }
+  3% {
+    opacity: 1;
+  }
+  6% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 1.4);
+  }
+  11% {
+    opacity: 1;
+  }
+  14% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 1.2);
+  }
+  19% {
+    opacity: 1;
+  }
+  27% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 0.9);
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  58% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 1);
+  }
+  61% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes neon-flicker-ambient {
+  0%,
+  91% {
+    opacity: 1;
+  }
+  92% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 0.36);
+  }
+  93% {
+    opacity: 1;
+  }
+  94.5% {
+    opacity: calc(1 - var(--flicker-intensity, 0.5) * 1.3);
+  }
+  96% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* ── Fundo vivo: blobs luminosos flutuando ──
  * Camada fixa atrás do conteúdo ("placa de neon à noite"): manchas de
  * luz na cor do estado (--blob-a/--blob-b, setadas inline no <main>)
@@ -135,7 +213,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob {
+  .blob,
+  .neon-flicker {
     animation: none;
   }
 }
