@@ -105,6 +105,7 @@ exigiria comprar tags NTAG 424 DNA à parte.
 ## Interface
 
 - Mobile-first: a cor da tela inteira é o status (verde = aberto, vermelho escuro = fechado).
+- **Favicon dinâmico**: a abinha do navegador muda em tempo real conforme o estado (rota `/api/icon` consulta Redis a cada requisição, sem esperar regeneração ISR).
 - Status em **Monaspace Neon** (variável, com *texture healing* via feature OpenType `calt`) com efeito de placa de neon em camadas de `text-shadow`.
 - Fonte padrão **Inter SemiBold** (variável), ambas self-hosted via `next/font`.
 - GIF aleatório do GIPHY abaixo do status (*thumbs up*/*thumbs down* conforme o estado, `rating=g` filtra conteúdo impróprio); o GIF troca a cada regeneração da página e some silenciosamente se a API falhar.
@@ -135,9 +136,11 @@ src/
 │   │   └── blobs/
 │   │       ├── page.tsx         # Tab de cores do fundo (preview ao vivo + salvar)
 │   │       └── BlobThemeEditor.tsx # Editor client-side com preview em miniatura
-│   └── api/cron/
-│       ├── auto-close/route.ts  # Cron 00h: fechamento automático noturno
-│       └── rotate-tokens/route.ts # Cron 06h: rotação diária de tokens
+│   └── api/
+│       ├── icon/route.ts            # GET: favicon dinâmico conforme estado (consulta Redis)
+│       └── cron/
+│           ├── auto-close/route.ts  # Cron 00h: fechamento automático noturno
+│           └── rotate-tokens/route.ts # Cron 06h: rotação diária de tokens
 ├── middleware.ts                # Basic Auth do /admin
 ├── components/
 │   ├── TimeAgo.tsx              # "há X minutos" no cliente
