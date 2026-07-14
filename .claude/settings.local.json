@@ -75,7 +75,14 @@
       "Bash(curl -s -u \"admin:troque-por-uma-senha-forte-local\" http://localhost:3000/admin/blobs -o /dev/null -w \"admin-blobs:%{http_code}\\\\n\")",
       "Bash(curl -s -u \"admin:troque-por-uma-senha-forte-local\" http://localhost:3000/admin/flicker -o /dev/null -w \"admin-flicker:%{http_code}\\\\n\")",
       "Bash(pkill -f \"npm run dev\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/ --max-time 3)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/ --max-time 3)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(node -p \"require\\('/home/maetsuji/unb/cacomp-aberto/package.json'\\).version\")",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/04a7dbce-4e3b-444a-b206-f4233456ea8d/scratchpad/home.html)",
+      "Bash(curl -s http://localhost:3001/ -o /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/04a7dbce-4e3b-444a-b206-f4233456ea8d/scratchpad/home.html)",
+      "Bash(curl -s -o /dev/null -w \"3000:%{http_code} \" http://localhost:3000/ --max-time 2)",
+      "Bash(curl -s -o /dev/null -w \"3001:%{http_code}\\\\n\" http://localhost:3001/ --max-time 2)",
+      "Bash(curl -s -o /dev/null -w \"3000:%{http_code}\\\\n\" http://localhost:3000/ --max-time 2)"
     ]
   }
 }

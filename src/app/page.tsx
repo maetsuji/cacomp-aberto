@@ -5,6 +5,7 @@ import { getFlickerSettings } from "@/lib/flicker-settings";
 import { getRandomGif } from "@/lib/gif";
 import { AUTO_CLOSE_REPORTER_ID, getRecentReports } from "@/lib/status";
 import type { CaStatus } from "@/lib/types";
+import { version } from "../../package.json";
 
 /* ─────────────────────────── ESTRATÉGIA DE CACHE ───────────────────────────
  *
@@ -114,7 +115,7 @@ export default async function HomePage() {
         <div className="blob blob-3" />
       </div>
       {/* ── Micro header: wordart do cacomp.xyz, só marca visual ── */}
-      <header className="flex justify-center pt-4 pb-4">
+      <header className="flex justify-center pt-4 pb-2">
         {/* eslint-disable-next-line @next/next/no-img-element -- GIF
             animado local; next/image não otimiza GIF (exigiria
             `unoptimized`) e pode quebrar a animação. */}
@@ -221,15 +222,19 @@ export default async function HomePage() {
         )}
 
         <p className="mt-6 text-center text-xs opacity-40">
-          Reportes anônimos via QR Code no local ·{" "}
-          <a
-            href="https://github.com/maetsuji/cacomp-aberto"
-            className="underline underline-offset-2"
-          >
-            código aberto
-          </a>
+          Reportes anônimos via QR Code no local
         </p>
       </footer>
+
+      <p className="mb-6 text-center text-xs opacity-40">
+        <a
+          href="https://github.com/maetsuji/cacomp-aberto"
+          className="underline underline-offset-2"
+        >
+          Código aberto
+        </a>{" "}
+        · v{version}
+      </p>
     </main>
   );
 }
