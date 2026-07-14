@@ -55,7 +55,16 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(pkill -9 -f \"next dev\")",
       "Bash(grep -ao '.\\\\{0,50\\\\}9090b.\\\\{0,50\\\\}' /tmp/claude-1000/-home-maetsuji-unb-cacomp-aberto/6426d0d7-39e6-4e65-ad07-922faaa4cb04/scratchpad/styles.css)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(file /home/maetsuji/unb/cacomp-aberto/src/app/icon*.png)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(curl -sI http://localhost:3000/api/icon)",
+      "Bash(cat /tmp/dev.log | tail -20)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:3000/api/icon)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
