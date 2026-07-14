@@ -1,10 +1,13 @@
 # CA-Aberto (CACOMP · UnB)
 
+![cacomp.xyz](/public/cacomp_xyz.gif)
 **O CA de Computação está aberto agora?** → [cacomp.xyz](https://cacomp.xyz) · [Preview](https://cacomp-aberto.vercel.app)
 
-Status em tempo real do Centro Acadêmico de Computação da UnB, reportado pela comunidade via QR Codes fixados no local — sem login, sem app, sem custo de infraestrutura.
+Status em tempo real do Centro Acadêmico de Computação da UnB, reportado pela comunidade via QR Codes fixados no local. Fácil de usar e rápido de consultar!
 
-> 🤖 Este projeto foi construído inteiramente em **vibecoding** com Claude (Fable 5, Sonnet) a partir de um System Design Document.
+> 🤖 Este projeto foi construído (quase) inteiramente em **vibecoding** com Claude (Fable 5, Sonnet) a partir de um System Design Document.
+
+> 🎨 Os assets de arte (exceto fontes e GIFs) utilizados no projeto foram feitos por mim, no Figma!
 
 ## Quick Start
 
@@ -16,7 +19,7 @@ npm run dev                    # localhost:3000
 
 Sem Redis: app degrada graciosamente (status FECHADO, feed vazio, reportes sem persistência).
 
-Testar no celular (mesma rede): `npm run generate-qr -- --host=SEU_IP_LOCAL:3000`
+Para testar no celular (mesma rede): `npm run generate-qr -- --host=SEU_IP_LOCAL:3000`
 
 ## Como funciona
 
@@ -24,7 +27,7 @@ Testar no celular (mesma rede): `npm run generate-qr -- --host=SEU_IP_LOCAL:3000
 
 Fluxo do reporte: **validação token** → **rate-limit anônimo** → **persiste estado no Redis** → **revalida Home na hora**.
 
-### 🔄 Estratégia de cache (o coração)
+### 🔄 Estratégia de cache
 
 Home é **HTML estático na CDN** (ISR). Nenhuma visita toca serverless/Redis normalmente. Quando um reporte é processado, `revalidatePath("/")` invalida o cache **instantaneamente** — tempo real com custo de página estática.
 
