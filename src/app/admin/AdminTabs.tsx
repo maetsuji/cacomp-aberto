@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logoutAction } from "./login/actions";
 
 // Navegação em tabs do painel /admin. O middleware de sessão cobre
 // /admin/:path*, então toda tab nova já nasce protegida.
@@ -28,6 +29,14 @@ export function AdminTabs({ active }: { active: AdminTabId }) {
           </Link>
         ))}
       </div>
+      <form action={logoutAction}>
+        <button
+          type="submit"
+          className="px-4 py-2 font-semibold text-zinc-400 hover:text-zinc-200"
+        >
+          Sair
+        </button>
+      </form>
     </nav>
   );
 }
