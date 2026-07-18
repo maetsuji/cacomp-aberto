@@ -1,14 +1,24 @@
 import QRCode from "qrcode";
 import { isGeofenceEnabled } from "@/lib/geofence";
 import {
+  getDeviceRateLimitMinutes,
+  isRateLimitDisabled,
+} from "@/lib/rate-limit";
+import {
   getStoredShortLinks,
   reportUrl,
   shortlinkConfigured,
 } from "@/lib/shortlink";
 import { getCaState } from "@/lib/status";
 import { getReportTokens } from "@/lib/tokens";
-import { rotateNowAction, syncLinksAction, toggleGeofenceAction } from "./actions";
+import {
+  rotateNowAction,
+  syncLinksAction,
+  toggleGeofenceAction,
+  toggleRateLimitAction,
+} from "./actions";
 import { AdminTabs } from "./AdminTabs";
+import { RateLimitEditor } from "./RateLimitEditor";
 
 // Página administrativa (protegida por Basic Auth no middleware).
 // Sempre dinâmica: mostra tokens e links vigentes, nunca de cache.
@@ -51,11 +61,20 @@ interface Props {
 
 export default async function AdminPage({ searchParams }: Props) {
   const { msg } = await searchParams;
-  const [tokens, links, state, geofenceEnabled] = await Promise.all([
+  const [
+    tokens,
+    links,
+    state,
+    geofenceEnabled,
+    rateLimitDisabled,
+    rateLimitMinutes,
+  ] = await Promise.all([
     getReportTokens(),
     getStoredShortLinks(),
     getCaState(),
     isGeofenceEnabled(),
+    isRateLimitDisabled(),
+    getDeviceRateLimitMinutes(),
   ]);
 
   const cards = await Promise.all([
@@ -128,6 +147,20 @@ export default async function AdminPage({ searchParams }: Props) {
                 : "Ligar verificação de localização"}
             </button>
           </form>
+          <form action={toggleRateLimitAction}>
+            <button
+              type="submit"
+              className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+                rateLimitDisabled
+                  ? "bg-red-700 hover:bg-red-600"
+                  : "bg-zinc-700 hover:bg-zinc-600"
+              }`}
+            >
+              {rateLimitDisabled
+                ? "Ligar rate limit"
+                : "Desligar rate limit (testes)"}
+            </button>
+          </form>
         </section>
 
         <p className="text-sm text-zinc-400">
@@ -139,6 +172,22 @@ export default async function AdminPage({ searchParams }: Props) {
             ? " — reportes exigem GPS perto do CA (não funciona testando de outro lugar)."
             : " — reportes não exigem GPS (bom para testar fora do CA)."}
         </p>
+
+        <p className="text-sm text-zinc-400">
+          Rate limit:{" "}
+          <strong className={rateLimitDisabled ? "text-red-400" : "text-zinc-500"}>
+            {rateLimitDisabled ? "DESLIGADO" : "LIGADO"}
+          </strong>
+          {rateLimitDisabled
+            ? " — reportes seguidos do mesmo device/IP não são bloqueados (só para testes, não deixar ligado em produção)."
+            : ` — reportes respeitam o bloqueio de ${rateLimitMinutes} min por device e o teto de 20/hora por IP.`}
+        </p>
+
+        {/* Slider da janela só faz sentido com o rate limit LIGADO —
+            desligado, some junto. */}
+        {!rateLimitDisabled && (
+          <RateLimitEditor initialMinutes={rateLimitMinutes} />
+        )}
 
         {/* ── QR Codes ── */}
         <section className="grid gap-6 sm:grid-cols-2">

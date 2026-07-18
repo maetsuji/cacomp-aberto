@@ -124,6 +124,30 @@ body {
   }
 }
 
+/* ── Fundo de tijolo: textura da parede do CA, atrás de tudo ──
+ * Duas camadas fixas abaixo do .blob-field: a imagem e um véu escuro
+ * translúcido por cima dela (opacidade ajustável em /admin/aparencia,
+ * --bg-overlay-opacity setada inline no <main>) pra manter o texto
+ * legível. Sem a textura ligada, o body volta a ser só a cor sólida
+ * #09090b definida acima. */
+.brick-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -12;
+  background-image: url("/brick-texture.webp");
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.brick-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -11;
+  background: rgba(9, 9, 11, var(--bg-overlay-opacity, 0.85));
+  pointer-events: none;
+}
+
 /* ── Fundo vivo: blobs luminosos flutuando ──
  * Camada fixa atrás do conteúdo ("placa de neon à noite"): manchas de
  * luz na cor do estado (--blob-a/--blob-b, setadas inline no <main>)
