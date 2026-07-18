@@ -5,5 +5,5 @@
  * server-only faz o webpack tentar empacotar `redis`/`net` no bundle
  * do navegador. */
 export const BACKGROUND_LIMITS = {
-  overlayOpacity: { min: 0, max: 1, step: 0.05 },
+  overlayOpacity: { min: 0, max: 1, step: 0.01 },
 } as const;

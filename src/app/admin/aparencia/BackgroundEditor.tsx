@@ -10,8 +10,12 @@ import {
 
 // Editor com preview ao vivo: o slider altera o estado local e o
 // preview reusa a MESMA textura da Home (public/brick-texture.webp) com
-// um véu escuro por cima na opacidade escolhida. Só o submit grava no
-// Redis, via Server Action.
+// um véu escuro por cima na opacidade escolhida. Com a textura
+// desativada, o preview mostra o fundo liso da Home e o slider fica
+// inativo (cinza). Só o submit grava no Redis, via Server Action.
+// O valor da opacidade viaja num input hidden — o range é só UI, assim
+// o valor salvo não se perde quando o slider está disabled (input
+// disabled não entra no FormData).
 
 export function BackgroundEditor({ initial }: { initial: BackgroundSettings }) {
   const [settings, setSettings] = useState<BackgroundSettings>(initial);
@@ -30,7 +34,11 @@ export function BackgroundEditor({ initial }: { initial: BackgroundSettings }) {
 
         <div
           className="relative h-40 overflow-hidden rounded-lg bg-cover bg-center"
-          style={{ backgroundImage: "url(/brick-texture.webp)" }}
+          style={
+            settings.enabled
+              ? { backgroundImage: "url(/brick-texture.webp)" }
+              : { backgroundColor: "#09090b" }
+          }
           aria-hidden
         >
           {settings.enabled && (
@@ -54,24 +62,38 @@ export function BackgroundEditor({ initial }: { initial: BackgroundSettings }) {
           />
         </label>
 
+        <input
+          type="hidden"
+          name="overlayOpacity"
+          value={settings.overlayOpacity}
+        />
+
         <label className="flex flex-col gap-2 text-sm">
-          <span className="flex items-center justify-between text-zinc-400">
+          <span
+            className={`flex items-center justify-between ${
+              settings.enabled ? "text-zinc-400" : "text-zinc-600"
+            }`}
+          >
             <span>Opacidade do véu escuro</span>
-            <span className="font-mono text-xs text-zinc-500">
+            <span className="font-mono text-xs">
               {Math.round(settings.overlayOpacity * 100)}%
             </span>
           </span>
           <input
             type="range"
-            name="overlayOpacity"
             min={BACKGROUND_LIMITS.overlayOpacity.min}
             max={BACKGROUND_LIMITS.overlayOpacity.max}
             step={BACKGROUND_LIMITS.overlayOpacity.step}
             value={settings.overlayOpacity}
+            disabled={!settings.enabled}
             onChange={(event) =>
               setField("overlayOpacity", Number(event.target.value))
             }
-            className="w-full cursor-pointer accent-green-500"
+            className={`w-full ${
+              settings.enabled
+                ? "cursor-pointer accent-green-500"
+                : "cursor-not-allowed accent-zinc-600 opacity-50"
+            }`}
           />
         </label>
       </div>

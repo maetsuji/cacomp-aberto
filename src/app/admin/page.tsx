@@ -183,11 +183,10 @@ export default async function AdminPage({ searchParams }: Props) {
             : ` — reportes respeitam o bloqueio de ${rateLimitMinutes} min por device e o teto de 20/hora por IP.`}
         </p>
 
-        {/* Slider da janela só faz sentido com o rate limit LIGADO —
-            desligado, some junto. */}
-        {!rateLimitDisabled && (
-          <RateLimitEditor initialMinutes={rateLimitMinutes} />
-        )}
+        <RateLimitEditor
+          initialMinutes={rateLimitMinutes}
+          disabled={rateLimitDisabled}
+        />
 
         {/* ── QR Codes ── */}
         <section className="grid gap-6 sm:grid-cols-2">
