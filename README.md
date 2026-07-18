@@ -37,7 +37,7 @@ Regra: fechar se ABERTO ∧ horário Brasília ∈ [00h, 07h) ∧ nenhum reporte
 
 ### 🔒 Anti-fraude sem login
 
-- **Rate-limit por device** (cookie UUID, 15 min) — não bloqueia múltiplos usuários na mesma WiFi
+- **Rate-limit por device** (cookie UUID, janela ajustável no `/admin` — default 15 min) — não bloqueia múltiplos usuários na mesma WiFi
 - **Teto frouxo por IP** (20/hora) — rede de segurança contra bots
 - **Circuit breaker diário** (500 reportes) — protege cota Redis
 - **Tokens rotativos** (Redis/env vars) — trocados diariamente, último vale 15 min de graça
@@ -46,13 +46,14 @@ Regra: fechar se ABERTO ∧ horário Brasília ∈ [00h, 07h) ∧ nenhum reporte
 
 ### ⚙️ Painel /admin
 
-HTTP Basic Auth. Funcionalidades:
+Tela de login própria (sessão assinada de 12h, botão Sair) — mesmas credenciais `ADMIN_USER`/`ADMIN_PASSWORD`. Funcionalidades:
 
 - QR Codes atuais (SVG inline, PNG/SVG download)
 - **Rotacionar tokens** agora (atualiza short.io, persiste se sucesso)
 - **Sincronizar short links** (primeiro setup ou reparo)
 - **Toggle geofence** (desligado por padrão, bom pra testar em casa)
-- **Customizar cores do fundo** (preview ao vivo, revalida Home na hora)
+- **Toggle + slider de rate limit** (janela por device de 1–60 min; desligável para testes)
+- **Tab Aparência**: cores dos blobs, flicker de neon e fundo de tijolo (preview ao vivo, revalida Home na hora)
 
 ### 🏠 NFC (tags NTAG215)
 
@@ -65,6 +66,7 @@ Ativar manualmente **Attack Challenge Mode** no dashboard (Project → Firewall)
 ## Interface
 
 - 🎨 Mobile-first: cor da tela = estado (verde ABERTO, vermelho FECHADO)
+- 🧱 **Fundo de tijolo** — textura de parede da UnB atrás dos blobs, opacidade do véu ajustável no `/admin`
 - 🔄 **Favicon dinâmico** — muda em tempo real conforme estado (consulta Redis sem esperar ISR)
 - 💄 **Status em Tilt Neon** — glifos de neon com perspectiva + text-shadow multicamadas
 - ✍️ **Inter SemiBold** padrão, ambas self-hosted via `next/font`
@@ -94,7 +96,7 @@ Vercel detecta commit em `release` → deploy automático para [cacomp.xyz](http
 | `REDIS_URL` | Vercel KV ou Redis nativo |
 | `GIPHY_API_KEY` | GIF aleatório (opcional) |
 | `CRON_SECRET` | Autoriza crons |
-| `ADMIN_USER` / `ADMIN_PASSWORD` | Basic Auth do `/admin` |
+| `ADMIN_USER` / `ADMIN_PASSWORD` | Login do `/admin` (sessão própria) |
 | `SHORTIO_API_KEY` + `SHORTIO_DOMAIN` | Short links para QRs |
 | `SITE_URL` | URL pública dos short links |
 | `REPORT_DAILY_CAP` | Teto reportes/dia (default 500) |
@@ -105,6 +107,7 @@ Em produção: configure no dashboard Vercel (Marketplace injeta `REDIS_URL` aut
 
 ## Links úteis
 
+- [Mapa da arquitetura](docs/ARCHITECTURE.md) — rotas, módulos, padrões do código
 - [System Design Document](https://www.notion.so) — arquitetura, decisões
 - [Discussões GitHub](https://github.com/maetsuji/cacomp-aberto/discussions) — ideias, feedback
 - [@maetsuji](https://github.com/maetsuji) — author
