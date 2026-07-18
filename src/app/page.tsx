@@ -1,5 +1,6 @@
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
+import { getBackgroundSettings } from "@/lib/background-settings";
 import { getBlobTheme } from "@/lib/blob-theme";
 import { getFlickerSettings } from "@/lib/flicker-settings";
 import { getRandomGif } from "@/lib/gif";
@@ -83,11 +84,12 @@ export default async function HomePage() {
   // como o Hobby só permite cron 1x/dia, as checagens de hora em hora da
   // madrugada acontecem aqui, pegando carona na regeneração ISR.
   const { state } = await maybeAutoClose();
-  const [reports, gifUrl, blobTheme, flicker] = await Promise.all([
+  const [reports, gifUrl, blobTheme, flicker, background] = await Promise.all([
     getRecentReports(5),
     getRandomGif(GIF_TAG[state.current_status]),
     getBlobTheme(),
     getFlickerSettings(),
+    getBackgroundSettings(),
   ]);
 
   const theme = THEME[state.current_status];
@@ -106,6 +108,23 @@ export default async function HomePage() {
         } as React.CSSProperties
       }
     >
+      {/* ── Fundo de tijolo: textura da parede do CA atrás de tudo,
+          coberta por um véu escuro translúcido pra manter o texto
+          legível (opacidade ajustável em /admin/aparencia). ── */}
+      {background.enabled && (
+        <>
+          <div className="brick-bg" aria-hidden />
+          <div
+            className="brick-overlay"
+            aria-hidden
+            style={
+              {
+                "--bg-overlay-opacity": background.overlayOpacity,
+              } as React.CSSProperties
+            }
+          />
+        </>
+      )}
       {/* ── Fundo vivo: blobs de luz na cor do estado (decorativo).
           Fica numa camada fixa atrás de tudo; animação e blur em
           globals.css (.blob-field / .blob). ── */}

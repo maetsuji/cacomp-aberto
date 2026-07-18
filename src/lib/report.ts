@@ -2,7 +2,12 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { CaStatus } from "./types";
 import { isGeofenceEnabled, isWithinGeofence } from "./geofence";
-import { hashReporter, isDeviceRateLimited, isIpFlooding } from "./rate-limit";
+import {
+  hashReporter,
+  isDeviceRateLimited,
+  isIpFlooding,
+  isRateLimitDisabled,
+} from "./rate-limit";
 import { setCaState } from "./status";
 import { storeIncrWithTTL } from "./store";
 import { getReportTokens, isValidToken } from "./tokens";
@@ -28,12 +33,15 @@ const DAILY_CAP = Number(process.env.REPORT_DAILY_CAP ?? 500);
  *
  * Ordem (do mais barato pro mais caro em leituras de Redis):
  * 1. Circuit breaker diário — protege a cota gratuita do Redis contra
- *    flood, roda ANTES até da leitura dos tokens.
+ *    flood, roda ANTES até da leitura dos tokens. Sempre ativo, mesmo
+ *    com o rate-limit desligado no /admin (passos 3-4 abaixo).
  * 2. Valida o token contra o par rotacionável no Redis (lib/tokens.ts).
  * 3. Teto frouxo de flood por IP (script sem cookies).
  * 4. Rate-limit estrito por dispositivo (cookie anônimo, ver route.ts) —
  *    substitui o antigo rate-limit por IP: numa wifi compartilhada,
  *    dispositivos diferentes não se bloqueiam mutuamente.
+ *    Passos 3-4 podem ser desligados via toggle no /admin
+ *    (lib/rate-limit.ts) pra testar vários reportes seguidos.
  * 5. Geofence por GPS, se ligado no /admin (lib/geofence.ts) — mitiga o
  *    problema do link estável, mas é um dissuasor, não prova inquebrável.
  * 6. Persiste o novo estado + log anônimo, invalida o cache da Home.
@@ -69,12 +77,14 @@ export async function processReport(
     "unknown";
   const reporterHash = hashReporter(ip);
 
-  if (await isIpFlooding(reporterHash)) {
-    return { ok: false, reason: "ip_flooding" };
-  }
+  if (!(await isRateLimitDisabled())) {
+    if (await isIpFlooding(reporterHash)) {
+      return { ok: false, reason: "ip_flooding" };
+    }
 
-  if (await isDeviceRateLimited(deviceId)) {
-    return { ok: false, reason: "device_rate_limited" };
+    if (await isDeviceRateLimited(deviceId)) {
+      return { ok: false, reason: "device_rate_limited" };
+    }
   }
 
   if (await isGeofenceEnabled()) {

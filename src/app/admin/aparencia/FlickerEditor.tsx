@@ -164,8 +164,8 @@ export function FlickerEditor({ initial }: { initial: FlickerSettings }) {
         Salvar grava os parâmetros no Redis e revalida a Home na hora — todo
         visitante passa a ver o novo flicker, sem redeploy. Sem config
         salva, valem os parâmetros padrão. O efeito respeita a preferência
-        de "reduzir movimento" do sistema, sempre — mesmo com o flicker
-        ativado aqui.
+        de &quot;reduzir movimento&quot; do sistema, sempre — mesmo com o
+        flicker ativado aqui.
       </p>
     </form>
   );

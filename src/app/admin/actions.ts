@@ -2,6 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  BACKGROUND_LIMITS,
+  DEFAULT_BACKGROUND_SETTINGS,
+  resetBackgroundSettings,
+  setBackgroundSettings,
+} from "@/lib/background-settings";
 import { HEX_COLOR, resetBlobTheme, setBlobTheme } from "@/lib/blob-theme";
 import {
   DEFAULT_FLICKER_SETTINGS,
@@ -10,6 +16,15 @@ import {
   setFlickerSettings,
 } from "@/lib/flicker-settings";
 import { isGeofenceEnabled, setGeofenceEnabled } from "@/lib/geofence";
+import {
+  isRateLimitDisabled,
+  setDeviceRateLimitMinutes,
+  setRateLimitDisabled,
+} from "@/lib/rate-limit";
+import {
+  DEFAULT_RATE_LIMIT_WINDOW_MINUTES,
+  RATE_LIMIT_WINDOW_LIMITS,
+} from "@/lib/rate-limit-limits";
 import { rotateAndSync } from "@/lib/rotate";
 import { syncShortLinks } from "@/lib/shortlink";
 import { getReportTokens } from "@/lib/tokens";
@@ -63,7 +78,7 @@ export async function saveBlobThemeAction(formData: FormData) {
 
   if (!openA || !openB || !closedA || !closedB) {
     redirect(
-      `/admin/blobs?msg=${encodeURIComponent(
+      `/admin/aparencia?msg=${encodeURIComponent(
         "Cor inválida — use o formato #rrggbb em todos os campos."
       )}`
     );
@@ -74,10 +89,10 @@ export async function saveBlobThemeAction(formData: FormData) {
     CLOSED: { blobA: closedA, blobB: closedB },
   });
   revalidatePath("/");
-  revalidatePath("/admin/blobs");
+  revalidatePath("/admin/aparencia");
 
   redirect(
-    `/admin/blobs?msg=${encodeURIComponent(
+    `/admin/aparencia?msg=${encodeURIComponent(
       "Cores salvas — a Home já mostra o novo fundo para todo mundo."
     )}`
   );
@@ -87,10 +102,10 @@ export async function saveBlobThemeAction(formData: FormData) {
 export async function resetBlobThemeAction() {
   await resetBlobTheme();
   revalidatePath("/");
-  revalidatePath("/admin/blobs");
+  revalidatePath("/admin/aparencia");
 
   redirect(
-    `/admin/blobs?msg=${encodeURIComponent(
+    `/admin/aparencia?msg=${encodeURIComponent(
       "Cores restauradas para o padrão do design."
     )}`
   );
@@ -128,10 +143,10 @@ export async function saveFlickerSettingsAction(formData: FormData) {
     ),
   });
   revalidatePath("/");
-  revalidatePath("/admin/flicker");
+  revalidatePath("/admin/aparencia");
 
   redirect(
-    `/admin/flicker?msg=${encodeURIComponent(
+    `/admin/aparencia?msg=${encodeURIComponent(
       "Parâmetros do flicker salvos — a Home já usa os novos valores para todo mundo."
     )}`
   );
@@ -141,13 +156,88 @@ export async function saveFlickerSettingsAction(formData: FormData) {
 export async function resetFlickerSettingsAction() {
   await resetFlickerSettings();
   revalidatePath("/");
-  revalidatePath("/admin/flicker");
+  revalidatePath("/admin/aparencia");
 
   redirect(
-    `/admin/flicker?msg=${encodeURIComponent(
+    `/admin/aparencia?msg=${encodeURIComponent(
       "Flicker restaurado para os parâmetros padrão."
     )}`
   );
+}
+
+/**
+ * Salva as configs do fundo de tijolo escolhidas em /admin/aparencia e
+ * revalida a Home na hora (mesmo mecanismo dos blobs e do flicker).
+ */
+export async function saveBackgroundSettingsAction(formData: FormData) {
+  const readNum = (name: string, min: number, max: number, fallback: number): number => {
+    const n = Number(formData.get(name));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  };
+
+  await setBackgroundSettings({
+    enabled: formData.get("enabled") === "on",
+    overlayOpacity: readNum(
+      "overlayOpacity",
+      BACKGROUND_LIMITS.overlayOpacity.min,
+      BACKGROUND_LIMITS.overlayOpacity.max,
+      DEFAULT_BACKGROUND_SETTINGS.overlayOpacity
+    ),
+  });
+  revalidatePath("/");
+  revalidatePath("/admin/aparencia");
+
+  redirect(
+    `/admin/aparencia?msg=${encodeURIComponent(
+      "Fundo de tijolo salvo — a Home já usa a nova config para todo mundo."
+    )}`
+  );
+}
+
+/** Apaga a config salva e volta aos parâmetros padrão do fundo de tijolo. */
+export async function resetBackgroundSettingsAction() {
+  await resetBackgroundSettings();
+  revalidatePath("/");
+  revalidatePath("/admin/aparencia");
+
+  redirect(
+    `/admin/aparencia?msg=${encodeURIComponent(
+      "Fundo de tijolo restaurado para o padrão."
+    )}`
+  );
+}
+
+/** Salva a duração da janela do rate-limit por device (slider em /admin). */
+export async function saveRateLimitWindowAction(formData: FormData) {
+  const n = Number(formData.get("windowMinutes"));
+  const minutes = Number.isFinite(n)
+    ? Math.min(
+        RATE_LIMIT_WINDOW_LIMITS.minutes.max,
+        Math.max(RATE_LIMIT_WINDOW_LIMITS.minutes.min, n)
+      )
+    : DEFAULT_RATE_LIMIT_WINDOW_MINUTES;
+
+  await setDeviceRateLimitMinutes(minutes);
+  revalidatePath("/admin");
+
+  redirect(
+    `/admin?msg=${encodeURIComponent(
+      `Janela do rate limit ajustada para ${minutes} min por dispositivo.`
+    )}`
+  );
+}
+
+/** Liga/desliga o rate-limit por device/IP dos reportes (uso: testes). */
+export async function toggleRateLimitAction() {
+  const current = await isRateLimitDisabled();
+  await setRateLimitDisabled(!current);
+  revalidatePath("/admin");
+
+  const msg = !current
+    ? "Rate limit DESLIGADO — reportes seguidos não são mais bloqueados (só para testes)."
+    : "Rate limit LIGADO — reportes voltam a respeitar os limites normais.";
+
+  redirect(`/admin?msg=${encodeURIComponent(msg)}`);
 }
 
 /** Recria/atualiza os short links para os tokens ATUAIS, sem rotacionar. */
