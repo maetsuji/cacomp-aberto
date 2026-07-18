@@ -110,6 +110,7 @@ Em produção: configure no dashboard Vercel (Marketplace injeta `REDIS_URL` aut
 
 - [Mapa da arquitetura](docs/ARCHITECTURE.md) — rotas, módulos, padrões do código
 - [Guia de dev local](docs/DEV.md) — Redis via Docker Compose, o que funciona em DES
+- [Roadmap](docs/ROADMAP.md) — bot WhatsApp, mural do CACOMP, GIFs sazonais
 - [System Design Document](https://www.notion.so) — arquitetura, decisões
 - [Discussões GitHub](https://github.com/maetsuji/cacomp-aberto/discussions) — ideias, feedback
 - [@maetsuji](https://github.com/maetsuji) — author
