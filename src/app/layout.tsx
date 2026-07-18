@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, Tilt_Neon } from "next/font/google";
 import localFont from "next/font/local";
@@ -54,7 +56,11 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${inter.variable} ${monaspaceNeon.variable} ${tiltNeon.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

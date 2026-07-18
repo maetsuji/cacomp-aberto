@@ -12,7 +12,9 @@
     "generate-qr:prod": "node scripts/generate-qr.mjs --prod"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vercel/kv": "^3.0.0",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "^15.3.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
