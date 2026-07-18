@@ -1,0 +1,14 @@
+# Redis local para desenvolvimento (ver docs/DEV.md).
+# Suba com `docker compose up -d` e aponte no .env.local:
+#   REDIS_URL=redis://localhost:6379
+services:
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

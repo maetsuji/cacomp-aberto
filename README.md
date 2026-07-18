@@ -13,11 +13,12 @@ Status em tempo real do Centro Acadêmico de Computação da UnB, reportado pela
 
 ```bash
 cp .env.example .env.local    # preencha GIPHY_API_KEY, tokens, etc.
+docker compose up -d           # Redis local (opcional — sem ele nada persiste)
 npm install
 npm run dev                    # localhost:3000
 ```
 
-Sem Redis: app degrada graciosamente (status FECHADO, feed vazio, reportes sem persistência).
+Sem Redis: app degrada graciosamente (status FECHADO, feed vazio, reportes sem persistência). Detalhes do dev local em [docs/DEV.md](docs/DEV.md).
 
 Para testar no celular (mesma rede): `npm run generate-qr -- --host=SEU_IP_LOCAL:3000`
 
@@ -108,6 +109,7 @@ Em produção: configure no dashboard Vercel (Marketplace injeta `REDIS_URL` aut
 ## Links úteis
 
 - [Mapa da arquitetura](docs/ARCHITECTURE.md) — rotas, módulos, padrões do código
+- [Guia de dev local](docs/DEV.md) — Redis via Docker Compose, o que funciona em DES
 - [System Design Document](https://www.notion.so) — arquitetura, decisões
 - [Discussões GitHub](https://github.com/maetsuji/cacomp-aberto/discussions) — ideias, feedback
 - [@maetsuji](https://github.com/maetsuji) — author
