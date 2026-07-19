@@ -95,8 +95,9 @@ export async function processReport(
 
   const state = await setCaState(status, reporterHash);
 
-  // Invalidação on-demand: derruba o cache da página inicial na CDN.
+  // Invalidação on-demand: derruba o cache da Home e do /stats na CDN.
   revalidatePath("/");
+  revalidatePath("/stats");
 
   return { ok: true, status: state.current_status };
 }

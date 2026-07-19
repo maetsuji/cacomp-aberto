@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
 import { getBackgroundSettings } from "@/lib/background-settings";
@@ -240,9 +241,15 @@ export default async function HomePage() {
           </ul>
         )}
 
-        <p className="mt-6 text-center text-xs opacity-40">
-          Reportes anônimos via QR Code no local
-        </p>
+        <div className="mt-6 flex items-center justify-between text-xs opacity-40">
+          <span>Reportes anônimos via QR Code no local</span>
+          <Link
+            href="/stats"
+            className="underline underline-offset-2 hover:opacity-100"
+          >
+            Histórico →
+          </Link>
+        </div>
       </footer>
 
       <p className="mb-6 text-center text-xs opacity-40">
