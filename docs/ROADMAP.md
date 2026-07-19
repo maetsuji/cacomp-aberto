@@ -26,9 +26,10 @@ número pessoal).
 2. **Webhook de transição**: quando o status MUDA (ABERTO↔FECHADO, não a
    cada reporte), POST fire-and-forget pra `STATUS_WEBHOOK_URL` com
    assinatura HMAC (`STATUS_WEBHOOK_SECRET`; mesmo padrão Web Crypto de
-   `src/lib/admin-session.ts`). Pontos de disparo: persistência do
-   reporte (`src/lib/report.ts`) e auto-close (`src/lib/auto-close.ts`).
-   Timeout curto, falha silenciosa — o site nunca depende do bot.
+   `src/lib/admin-session.ts`). **O ponto de disparo já existe**: o
+   despachante `src/lib/on-transition.ts` (criado pro /stats e pro Web
+   Push) — é só adicionar o POST lá, dentro de `after()`. Timeout curto,
+   falha silenciosa — o site nunca depende do bot.
 
 ### Lado do bot (repo novo, ex. `cacomp-bot`)
 
@@ -142,3 +143,19 @@ GIF da Home vira "data + thumbs up/down" — ex. `christmas thumbs down`,
   pra busca normal (nunca quebra a Home).
 - Opcional: preview/override do termo sazonal na aba Aparência do
   /admin.
+
+---
+
+## F4 — Escala da gestão no /stats (overlay de previsão)
+
+Evolução do gráfico semanal já existente em `/stats`: a gestão envia uma
+tabela de horários em que os portadores da chave estarão disponíveis
+para abrir o CA, e o gráfico ganha um **overlay hachurado** de "previsto
+aberto" sobre as janelas reais.
+
+- Dados: `ca:schedule:{isoWeek}` — lista de janelas previstas por dia,
+  editada numa tela da gestão (depende dos cargos do F2).
+- O CSV de export (`/admin/export`) vira também o formato de import da
+  escala (mesmas colunas, sem `duration_min`).
+- Leitura no `/stats`: mesma `collect()` de `src/lib/intervals.ts`,
+  segunda camada de segmentos com estilo tracejado/outline.

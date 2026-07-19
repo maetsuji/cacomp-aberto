@@ -34,6 +34,8 @@ admin voltam ao default a cada request.
 | Crons | ⚠️ manuais | O `vercel.json` só agenda na Vercel. Local, dispare na mão: `curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/rotate-tokens` (idem `auto-close`) |
 | Geofence (GPS) | ⚠️ só em localhost | Exige `GEOFENCE_LAT`/`GEOFENCE_LNG` e contexto seguro do browser: funciona em `localhost`, mas **não** no celular via IP da LAN (`http://192.168…`) |
 | GIF do GIPHY | ⚠️ opcional | Sem `GIPHY_API_KEY`, a Home simplesmente não mostra GIF. A chave gratuita funciona local |
+| Web Push (botão 🔔) | ⚠️ opcional | Gere as chaves com `npx web-push generate-vapid-keys` e preencha as `VAPID_*` no `.env.local`. Funciona em `localhost` (contexto seguro); sem as chaves o botão não aparece. iOS só recebe push com a PWA instalada (16.4+) |
+| Uptime | — | `/api/health` responde 200/503 conforme o Redis; em produção, aponte um monitor gratuito (UptimeRobot/BetterStack, check de 5 min) pra `https://cacomp.xyz/api/health` |
 | `/admin` em si | ❗ exige senha | Sem `ADMIN_PASSWORD`, todo o `/admin` (inclusive o login) responde 503 — fail-closed |
 | `SITE_URL` | — | Só importa como destino dos short links em produção |
 
