@@ -147,6 +147,13 @@ export default async function AdminPage({ searchParams }: Props) {
                 : "Ligar verificação de localização"}
             </button>
           </form>
+          <a
+            href="/admin/export?weeks=4"
+            download
+            className="rounded-lg bg-zinc-700 px-4 py-2 text-sm font-semibold hover:bg-zinc-600"
+          >
+            Exportar histórico (CSV)
+          </a>
           <form action={toggleRateLimitAction}>
             <button
               type="submit"

@@ -120,16 +120,12 @@ export function weekDates(now: Date): string[] {
   );
 }
 
-/**
- * Intervalos da semana vigente (dom→sáb), incluindo o período aberto em
- * andamento (sintetizado de open-since até `now`, sem persistir).
- */
-export async function getWeekIntervals(now = new Date()): Promise<{
-  days: DayIntervals[];
-  openSince: string | null;
-}> {
-  const dates = weekDates(now);
-
+/** Lê os intervalos das datas dadas + sintetiza o período aberto em
+ *  andamento (de open-since até `now`), sem persistir nada. */
+async function collect(
+  dates: string[],
+  now: Date
+): Promise<{ days: DayIntervals[]; openSince: string | null }> {
   if (!storeAvailable()) {
     return {
       days: dates.map((date) => ({ date, intervals: [] })),
@@ -159,4 +155,24 @@ export async function getWeekIntervals(now = new Date()): Promise<{
     days: dates.map((date) => ({ date, intervals: byDate.get(date) ?? [] })),
     openSince: openSince ?? null,
   };
+}
+
+/** Intervalos da semana vigente (dom→sáb). */
+export async function getWeekIntervals(now = new Date()): Promise<{
+  days: DayIntervals[];
+  openSince: string | null;
+}> {
+  return collect(weekDates(now), now);
+}
+
+/** Últimos `numDays` dias (terminando hoje) — usado pelo export CSV. */
+export async function getIntervalsRange(
+  now: Date,
+  numDays: number
+): Promise<DayIntervals[]> {
+  const todayStartMs = brtDayStartUtc(now).getTime();
+  const dates = Array.from({ length: numDays }, (_, i) =>
+    brasiliaDateKey(new Date(todayStartMs - (numDays - 1 - i) * DAY_MS + 1))
+  );
+  return (await collect(dates, now)).days;
 }
