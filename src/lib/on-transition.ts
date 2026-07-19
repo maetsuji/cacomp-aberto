@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { recordTransition } from "./intervals";
+import { sendOpenPush } from "./push";
 import type { CaStatus } from "./types";
 
 /* ── Despachante de transições de status ──
@@ -19,6 +21,11 @@ export async function onStatusTransition(
 ): Promise<void> {
   await recordTransition(status, at);
 
-  // Futuro: Web Push ("o CA abriu!") e webhook do bot WhatsApp (F1)
-  // plugam aqui — ver docs/ROADMAP.md.
+  // Web Push fora do caminho crítico: after() executa depois da
+  // resposta/render terminar, então o reporte não espera os envios.
+  if (status === "OPEN") {
+    after(() => sendOpenPush(at));
+  }
+
+  // Futuro: webhook do bot WhatsApp (F1) pluga aqui — docs/ROADMAP.md.
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushSubscribeButton } from "@/components/PushSubscribeButton";
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
 import { getBackgroundSettings } from "@/lib/background-settings";
@@ -197,9 +198,13 @@ export default async function HomePage() {
           Atualizado <TimeAgo iso={state.updated_at} />
         </p>
 
-        <p className="mt-6 max-w-xs pb-4 text-sm opacity-60">
+        <p className="mt-6 max-w-xs text-sm opacity-60">
           {theme.hint}
         </p>
+
+        <div className="pb-4">
+          <PushSubscribeButton />
+        </div>
       </section>
 
       {/* ── Feed de transparência: últimos 5 reportes anônimos, num
