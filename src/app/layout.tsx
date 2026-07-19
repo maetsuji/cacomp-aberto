@@ -36,11 +36,21 @@ const tiltNeon = Tilt_Neon({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "https://cacomp.xyz"),
   title: "CA Aberto? — CACOMP UnB",
   description:
     "O Centro Acadêmico de Computação da UnB está aberto agora? Status em tempo real, reportado pela comunidade.",
   icons: {
     icon: "/api/icon", // aponta para src/app/api/icon/route.ts (route handler dinâmico)
+  },
+  // Preview de link dinâmico: /api/og desenha ABERTO/FECHADO ao vivo —
+  // compartilhar cacomp.xyz num grupo já mostra o status no preview.
+  openGraph: {
+    images: ["/api/og"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/api/og"],
   },
 };
 
