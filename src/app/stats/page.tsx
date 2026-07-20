@@ -123,17 +123,22 @@ export default async function StatsPage() {
           </p>
         </div>
 
-        {/* Voltar em liquid glass redondo, à direita (zona do polegar;
-            44x44 = alvo de toque acessível). borderRadius inline: no
-            Tailwind v4 o rounded-full (em layer) perde pro
-            border-radius da .glass, que é CSS sem layer. */}
+        {/* Voltar em liquid glass, à direita (zona do polegar; 44px de
+            altura = alvo de toque acessível). Em telas maiores vira
+            pílula com o rótulo "Voltar"; no mobile o texto some e resta
+            a seta redonda. borderRadius inline: no Tailwind v4 o
+            rounded-full (em layer) perde pro border-radius da .glass,
+            que é CSS sem layer. */}
         <Link
           href="/"
           aria-label="Voltar para a página inicial"
-          className="glass flex h-11 w-11 shrink-0 items-center justify-center text-lg hover:opacity-80"
+          className="glass flex h-11 w-11 shrink-0 items-center justify-center gap-1.5 text-lg hover:opacity-80 sm:w-auto sm:px-4"
           style={{ borderRadius: "9999px" }}
         >
           ←
+          <span className="hidden text-sm font-semibold sm:inline">
+            Voltar
+          </span>
         </Link>
       </header>
 
