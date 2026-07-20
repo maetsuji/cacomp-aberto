@@ -1,6 +1,6 @@
 {
   "name": "ca-aberto",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "Status em tempo real do CA de Computação da UnB (CACOMP), via reportes anônimos por QR Code.",
   "scripts": {
