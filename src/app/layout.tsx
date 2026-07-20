@@ -1,6 +1,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
+import { ViewTransitions } from "next-view-transitions";
 import { Inter, Tilt_Neon } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -62,15 +63,20 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${inter.variable} ${monaspaceNeon.variable} ${tiltNeon.variable}`}
-    >
-      <body className="antialiased">
-        {children}
-        <Analytics />
-        <SpeedInsights />
-      </body>
-    </html>
+    // ViewTransitions (next-view-transitions): crossfade suave entre
+    // páginas (Home ↔ /stats) via View Transitions API; browsers sem
+    // suporte (Firefox) navegam instantâneo, sem quebrar.
+    <ViewTransitions>
+      <html
+        lang="pt-BR"
+        className={`${inter.variable} ${monaspaceNeon.variable} ${tiltNeon.variable}`}
+      >
+        <body className="antialiased">
+          {children}
+          <Analytics />
+          <SpeedInsights />
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

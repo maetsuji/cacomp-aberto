@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { PushSubscribeButton } from "@/components/PushSubscribeButton";
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
@@ -250,7 +250,7 @@ export default async function HomePage() {
           <span>Reportes anônimos via QR Code no local</span>
           <Link
             href="/stats"
-            className="underline underline-offset-2 hover:opacity-100"
+            className="shrink-0 pl-1 underline underline-offset-2 hover:opacity-100"
           >
             Histórico →
           </Link>

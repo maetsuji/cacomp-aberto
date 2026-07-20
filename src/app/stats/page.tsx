@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
+import { getBackgroundSettings } from "@/lib/background-settings";
+import { getFlickerSettings } from "@/lib/flicker-settings";
 import {
   brasiliaDateKey,
   getWeekIntervals,
@@ -49,7 +51,11 @@ function formatRange(interval: OpenInterval): string {
 
 export default async function StatsPage() {
   const now = new Date();
-  const { days } = await getWeekIntervals(now);
+  const [{ days }, background, flicker] = await Promise.all([
+    getWeekIntervals(now),
+    getBackgroundSettings(),
+    getFlickerSettings(),
+  ]);
 
   const todayKey = brasiliaDateKey(now);
   const nowPercent = dayPercent(now.toISOString(), todayKey);
@@ -57,6 +63,22 @@ export default async function StatsPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50">
+      {/* Mesmo fundo de tijolo da Home (classes globais de globals.css;
+          opacidade do véu vem do Redis via /admin/aparencia). */}
+      {background.enabled && (
+        <>
+          <div className="brick-bg" aria-hidden />
+          <div
+            className="brick-overlay"
+            aria-hidden
+            style={
+              {
+                "--bg-overlay-opacity": background.overlayOpacity,
+              } as React.CSSProperties
+            }
+          />
+        </>
+      )}
       <header className="space-y-1">
         <Link
           href="/"
@@ -64,16 +86,25 @@ export default async function StatsPage() {
         >
           ← Voltar
         </Link>
-        <h1 className="neon-text status-font text-3xl" style={
-          {
-            "--neon-color": "#69ffa0",
-            "--neon-color-dim": "#00ff5e",
-          } as React.CSSProperties
-        }>
+        {/* Mesma placa de neon da Home, herdando o flicker configurado */}
+        <h1
+          className={`neon-text status-font text-3xl${
+            flicker.enabled ? " neon-flicker" : ""
+          }`}
+          style={
+            {
+              "--neon-color": "#ffffe6",
+              "--neon-color-dim": "#f4cec5",
+              "--flicker-on-duration": `${flicker.onDuration}s`,
+              "--flicker-ambient-duration": `${flicker.ambientInterval}s`,
+              "--flicker-intensity": flicker.intensity,
+            } as React.CSSProperties
+          }
+        >
           HISTÓRICO
         </h1>
         <p className="text-sm opacity-60">
-          Quando o CACOMP esteve aberto nesta semana
+          Quando que o CACOMP esteve aberto nesta semana?
         </p>
       </header>
 

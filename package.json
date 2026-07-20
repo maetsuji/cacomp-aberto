@@ -17,6 +17,7 @@
     "@vercel/kv": "^3.0.0",
     "@vercel/speed-insights": "^2.0.0",
     "next": "^15.3.0",
+    "next-view-transitions": "^0.3.5",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -143,6 +143,7 @@ export async function saveFlickerSettingsAction(formData: FormData) {
     ),
   });
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(
@@ -156,6 +157,7 @@ export async function saveFlickerSettingsAction(formData: FormData) {
 export async function resetFlickerSettingsAction() {
   await resetFlickerSettings();
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(
@@ -185,6 +187,7 @@ export async function saveBackgroundSettingsAction(formData: FormData) {
     ),
   });
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(
@@ -198,6 +201,7 @@ export async function saveBackgroundSettingsAction(formData: FormData) {
 export async function resetBackgroundSettingsAction() {
   await resetBackgroundSettings();
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(
