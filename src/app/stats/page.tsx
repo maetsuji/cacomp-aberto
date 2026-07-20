@@ -70,7 +70,7 @@ export default async function StatsPage() {
   const blobs = blobTheme[state.current_status];
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50">
+    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center gap-6 px-4 py-8 text-zinc-50">
       {/* Fundo (tijolo + blobs) mora no layout raiz e persiste entre
           páginas — aqui só injetamos as cores/vars do estado atual. */}
       <BackgroundStyle blobs={blobs} background={background} />
