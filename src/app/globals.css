@@ -306,7 +306,7 @@ body {
  * fluido sem atrasar a navegação. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.25s;
+  animation-duration: 0.125s;
   animation-timing-function: ease;
 }
 
