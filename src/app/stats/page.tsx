@@ -99,33 +99,42 @@ export default async function StatsPage() {
         <div className="blob blob-2" />
         <div className="blob blob-3" />
       </div>
-      <header className="space-y-1">
+      <header className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          {/* Mesma placa de neon da Home, herdando o flicker configurado */}
+          <h1
+            className={`neon-text status-font text-3xl${
+              flicker.enabled ? " neon-flicker" : ""
+            }`}
+            style={
+              {
+                "--neon-color": "#ffffe6",
+                "--neon-color-dim": "#f4cec5",
+                "--flicker-on-duration": `${flicker.onDuration}s`,
+                "--flicker-ambient-duration": `${flicker.ambientInterval}s`,
+                "--flicker-intensity": flicker.intensity,
+              } as React.CSSProperties
+            }
+          >
+            HISTÓRICO
+          </h1>
+          <p className="text-sm opacity-60">
+            Quando que o CACOMP esteve aberto nesta semana?
+          </p>
+        </div>
+
+        {/* Voltar em liquid glass redondo, à direita (zona do polegar;
+            44x44 = alvo de toque acessível). borderRadius inline: no
+            Tailwind v4 o rounded-full (em layer) perde pro
+            border-radius da .glass, que é CSS sem layer. */}
         <Link
           href="/"
-          className="text-xs opacity-50 underline underline-offset-2 hover:opacity-80"
+          aria-label="Voltar para a página inicial"
+          className="glass flex h-11 w-11 shrink-0 items-center justify-center text-lg hover:opacity-80"
+          style={{ borderRadius: "9999px" }}
         >
-          ← Voltar
+          ←
         </Link>
-        {/* Mesma placa de neon da Home, herdando o flicker configurado */}
-        <h1
-          className={`neon-text status-font text-3xl${
-            flicker.enabled ? " neon-flicker" : ""
-          }`}
-          style={
-            {
-              "--neon-color": "#ffffe6",
-              "--neon-color-dim": "#f4cec5",
-              "--flicker-on-duration": `${flicker.onDuration}s`,
-              "--flicker-ambient-duration": `${flicker.ambientInterval}s`,
-              "--flicker-intensity": flicker.intensity,
-            } as React.CSSProperties
-          }
-        >
-          HISTÓRICO
-        </h1>
-        <p className="text-sm opacity-60">
-          Quando que o CACOMP esteve aberto nesta semana?
-        </p>
       </header>
 
       <section className="glass space-y-3 px-5 pb-5 pt-4">
