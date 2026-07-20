@@ -126,14 +126,17 @@ body {
 
 /* ── Fundo de tijolo: textura da parede do CA, atrás de tudo ──
  * Duas camadas fixas abaixo do .blob-field: a imagem e um véu escuro
- * translúcido por cima dela (opacidade ajustável em /admin/aparencia,
- * --bg-overlay-opacity setada inline no <main>) pra manter o texto
- * legível. Sem a textura ligada, o body volta a ser só a cor sólida
- * #09090b definida acima. */
+ * translúcido por cima dela (opacidade ajustável em /admin/aparencia)
+ * pra manter o texto legível. O DOM vive no layout raiz (persiste
+ * entre páginas); cada página controla as vars via <BackgroundStyle>:
+ * --brick-display esconde a textura quando desligada no admin (ou em
+ * páginas que não setam vars — default block, mas o véu 0.85 + body
+ * escuro cobrem). Sem a textura, o body volta à cor sólida #09090b. */
 .brick-bg {
   position: fixed;
   inset: 0;
   z-index: -12;
+  display: var(--brick-display, block);
   background-image: url("/brick-texture.webp");
   background-size: cover;
   background-position: center;
@@ -144,8 +147,32 @@ body {
   position: fixed;
   inset: 0;
   z-index: -11;
+  display: var(--brick-display, block);
   background: rgba(9, 9, 11, var(--bg-overlay-opacity, 0.85));
   pointer-events: none;
+}
+
+/* Registrar as cores dos blobs como <color> permite TRANSICIONAR a
+ * troca de var (status muda entre uma página e outra): os blobs fazem
+ * morph suave de verde↔vermelho em vez de trocar seco. initial-value
+ * transparent = página que não seta vars não mostra blob nenhum.
+ * Browsers sem @property ignoram e trocam seco (comportamento antigo). */
+@property --blob-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --blob-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+:root {
+  transition:
+    --blob-a 0.8s ease,
+    --blob-b 0.8s ease;
 }
 
 /* ── Fundo vivo: blobs luminosos flutuando ──
@@ -298,4 +325,21 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
     0 8px 32px rgba(0, 0, 0, 0.25);
   border-radius: 1rem;
+}
+
+/* ── Transição entre páginas (View Transitions API) ──
+ * Crossfade do documento inteiro na navegação Home ↔ /stats (disparado
+ * pelo <Link> do next-view-transitions). Duração curta pra parecer
+ * fluido sem atrasar a navegação. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.0625s;
+  animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }

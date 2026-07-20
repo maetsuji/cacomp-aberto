@@ -1,0 +1,34 @@
+name: CI
+
+# Valida todo PR (para main ou release) e todo push em main: lint, testes
+# e build. O build roda sem env vars de propósito — o app degrada
+# graciosamente sem Redis (fail-open), então buildar "seco" é justamente
+# o teste de que essa garantia continua valendo.
+on:
+  pull_request:
+    branches: [main, release]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instala dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build

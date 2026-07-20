@@ -1,3 +1,4 @@
+import { onStatusTransition } from "./on-transition";
 import {
   storeAvailable,
   storeGetJson,
@@ -48,6 +49,10 @@ export async function setCaState(
   action: CaStatus,
   reporterHash: string
 ): Promise<CaState> {
+  // Estado anterior lido ANTES de gravar: reportes repetidos do mesmo
+  // estado (ex.: dois "aberto" seguidos) não são transição e não
+  // disparam os efeitos do despachante (intervalos do /stats etc.).
+  const prev = await getCaState();
   const now = new Date().toISOString();
 
   const state: CaState = { current_status: action, updated_at: now };
@@ -63,6 +68,10 @@ export async function setCaState(
     storeLpushJson(HISTORY_KEY, entry),
   ]);
   await storeLtrim(HISTORY_KEY, 0, HISTORY_MAX - 1);
+
+  if (prev.current_status !== action) {
+    await onStatusTransition(action, new Date(now));
+  }
 
   return state;
 }

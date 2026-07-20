@@ -68,7 +68,9 @@ Ativar manualmente **Attack Challenge Mode** no dashboard (Project → Firewall)
 
 - 🎨 Mobile-first: cor da tela = estado (verde ABERTO, vermelho FECHADO)
 - 🧱 **Fundo de tijolo** — textura de parede da UnB atrás dos blobs, opacidade do véu ajustável no `/admin`
-- 🔄 **Favicon dinâmico** — muda em tempo real conforme estado (consulta Redis sem esperar ISR)
+- 🔄 **Favicon e preview de link dinâmicos** — favicon e OG image mostram o estado ao vivo (compartilhar o link já responde a pergunta)
+- 📊 **Histórico semanal** — [/stats](https://cacomp.xyz/stats): janelas verdes nos períodos abertos, dom→sáb (export CSV no `/admin`)
+- 🔔 **"Avise-me quando abrir"** — Web Push + PWA instalável, notifica na transição pra ABERTO
 - 💄 **Status em Tilt Neon** — glifos de neon com perspectiva + text-shadow multicamadas
 - ✍️ **Inter SemiBold** padrão, ambas self-hosted via `next/font`
 - 🎬 **GIF aleatório GIPHY** (*thumbs up*/*thumbs down*) abaixo do status
@@ -103,6 +105,7 @@ Vercel detecta commit em `release` → deploy automático para [cacomp.xyz](http
 | `REPORT_DAILY_CAP` | Teto reportes/dia (default 500) |
 | `REPORT_IP_FLOOD_CAP` | Teto reportes/hora por IP (default 20) |
 | `GEOFENCE_LAT` / `LNG` / `RADIUS_METERS` | Coordenadas CA + raio GPS |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | Web Push (opcional) |
 
 Em produção: configure no dashboard Vercel (Marketplace injeta `REDIS_URL` automaticamente).
 
@@ -110,6 +113,7 @@ Em produção: configure no dashboard Vercel (Marketplace injeta `REDIS_URL` aut
 
 - [Mapa da arquitetura](docs/ARCHITECTURE.md) — rotas, módulos, padrões do código
 - [Guia de dev local](docs/DEV.md) — Redis via Docker Compose, o que funciona em DES
+- [Roadmap](docs/ROADMAP.md) — bot WhatsApp, mural do CACOMP, GIFs sazonais
 - [System Design Document](https://www.notion.so) — arquitetura, decisões
 - [Discussões GitHub](https://github.com/maetsuji/cacomp-aberto/discussions) — ideias, feedback
 - [@maetsuji](https://github.com/maetsuji) — author

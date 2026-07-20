@@ -47,15 +47,23 @@ export async function storeGetJson<T>(key: string): Promise<T | null> {
   return null;
 }
 
-export async function storeSetJson(key: string, value: unknown): Promise<void> {
+export async function storeSetJson(
+  key: string,
+  value: unknown,
+  ttlSeconds?: number
+): Promise<void> {
   if (hasKvRest) {
-    await kv.set(key, value);
+    await kv.set(key, value, ttlSeconds ? { ex: ttlSeconds } : undefined);
     return;
   }
 
   if (hasRedisUrl) {
     const client = await getRedisClient();
-    await client.set(key, JSON.stringify(value));
+    await client.set(
+      key,
+      JSON.stringify(value),
+      ttlSeconds ? { EX: ttlSeconds } : undefined
+    );
   }
 }
 

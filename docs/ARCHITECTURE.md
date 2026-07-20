@@ -7,14 +7,19 @@ Guia rápido pro mantenedor. O README explica *o que* o projeto faz; aqui é
 
 | Rota | Tipo | O que faz |
 |------|------|-----------|
-| `/` | Estática (ISR, `revalidate = 300`) | Home: status ABERTO/FECHADO, GIF, feed dos últimos reportes |
-| `/report` | Route handler (GET) | Destino dos QR/NFC: valida token, rate-limit, persiste estado, revalida a Home |
+| `/` | Estática (ISR, `revalidate = 300`) | Home: status ABERTO/FECHADO, GIF, feed dos últimos reportes, botão 🔔 de push |
+| `/stats` | Estática (ISR, `revalidate = 300`) | Gráfico da semana (dom→sáb): janelas verdes nos períodos abertos |
+| `/report` | Route handler (GET) | Destino dos QR/NFC: valida token, rate-limit, persiste estado, revalida Home e /stats |
 | `/report/locating` | Estática | Tela intermediária que pede GPS quando o geofence está ligado |
 | `/report/result` | Dinâmica | Resultado do reporte (padrão POST/Redirect/GET) |
 | `/admin` | Dinâmica | Painel: QRs, tokens, toggles (geofence, rate limit), slider da janela |
 | `/admin/login` | Dinâmica | Tela de login (única rota sob `/admin` liberada pelo middleware sem sessão) |
 | `/admin/aparencia` | Dinâmica | Editores visuais: cores dos blobs, flicker de neon, fundo de tijolo |
+| `/admin/export` | Route handler (GET) | CSV do histórico de abertura (`?weeks=1..12`) — protegido pela sessão |
 | `/api/icon` | Route handler (GET, force-dynamic) | Favicon dinâmico: PNG verde/vermelho conforme o estado no Redis |
+| `/api/og` | Route handler (GET, force-dynamic) | OG image 1200×630: preview do link mostra ABERTO/FECHADO ao vivo |
+| `/api/health` | Route handler (GET, force-dynamic) | 200/503 conforme o Redis responde — alvo do monitor de uptime |
+| `/api/push/subscribe` | Route handler (POST/DELETE) | Registra/remove assinaturas de Web Push |
 | `/api/cron/*` | Route handlers (Bearer `CRON_SECRET`) | `rotate-tokens` (06h) e `auto-close` (madrugada), agendados no `vercel.json` |
 
 Mutations do admin são **Server Actions** (`admin/actions.ts`,
@@ -28,7 +33,10 @@ Mutations do admin são **Server Actions** (`admin/actions.ts`,
 |--------|------------------|
 | `store.ts` | Abstração Redis (Vercel KV REST ou `REDIS_URL`); todo acesso a dados passa aqui |
 | `types.ts` | Modelo de dados (`CaStatus`, `CaState`) |
-| `status.ts` | Estado vigente + histórico de reportes |
+| `status.ts` | Estado vigente + histórico de reportes; dispara o despachante quando o status MUDA |
+| `on-transition.ts` | Despachante de transições: fan-out de efeitos (intervalos, push; futuro: webhook do bot) |
+| `intervals.ts` | Períodos de abertura por dia de Brasília (`ca:intervals:*`) — base do /stats e do CSV |
+| `push.ts` | Web Push: assinaturas no Redis + envio com poda de subs mortas |
 | `report.ts` | `processReport()`: o fluxo completo de um reporte (ordem dos checks abaixo) |
 | `tokens.ts` | Tokens rotativos dos QRs (Redis, fallback pra env vars) |
 | `rotate.ts` | Orquestra rotação de token + resync dos short links |
@@ -65,6 +73,18 @@ nos defaults). Inventário:
 - `ca:report-count` — circuit breaker diário
 - `ca:ratelimit:device:{id}` · `ca:ratelimit:ipflood:{hash}` · `ca:admin-login-fail:{hash}` — janelas de rate-limit
 - `ca:auto-close-lock` — lock do fechamento noturno
+- `ca:intervals:{YYYY-MM-DD}` (TTL 90d) · `ca:intervals:open-since` — períodos de abertura (/stats, CSV)
+- `ca:push:subs` — assinaturas de Web Push
+
+### Despachante de transições
+
+`setCaState` (status.ts) lê o estado anterior antes de gravar; quando o
+status MUDA de fato (reporte repetido não conta), chama
+`onStatusTransition` (on-transition.ts): registra o intervalo pro /stats
+e, na abertura, envia Web Push via `after()` — fora do caminho crítico.
+Atenção: `setCaState` roda também **durante render ISR** (auto-close
+preguiçoso na Home), então o despachante nunca chama `revalidatePath`
+— quem revalida é o `processReport` (contexto de route handler).
 
 ### Fail-open vs fail-closed
 
