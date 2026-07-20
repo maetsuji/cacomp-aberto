@@ -89,6 +89,7 @@ export async function saveBlobThemeAction(formData: FormData) {
     CLOSED: { blobA: closedA, blobB: closedB },
   });
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(
@@ -102,6 +103,7 @@ export async function saveBlobThemeAction(formData: FormData) {
 export async function resetBlobThemeAction() {
   await resetBlobTheme();
   revalidatePath("/");
+  revalidatePath("/stats");
   revalidatePath("/admin/aparencia");
 
   redirect(

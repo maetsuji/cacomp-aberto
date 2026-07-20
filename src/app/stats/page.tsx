@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Link } from "next-view-transitions";
 import { getBackgroundSettings } from "@/lib/background-settings";
+import { getBlobTheme } from "@/lib/blob-theme";
 import { getFlickerSettings } from "@/lib/flicker-settings";
+import { getCaState } from "@/lib/status";
 import {
   brasiliaDateKey,
   getWeekIntervals,
@@ -51,18 +53,31 @@ function formatRange(interval: OpenInterval): string {
 
 export default async function StatsPage() {
   const now = new Date();
-  const [{ days }, background, flicker] = await Promise.all([
+  const [{ days }, background, flicker, blobTheme, state] = await Promise.all([
     getWeekIntervals(now),
     getBackgroundSettings(),
     getFlickerSettings(),
+    getBlobTheme(),
+    getCaState(),
   ]);
 
   const todayKey = brasiliaDateKey(now);
   const nowPercent = dayPercent(now.toISOString(), todayKey);
   const hasData = days.some((day) => day.intervals.length > 0);
+  // Blobs na cor do estado atual, como na Home — o verde/vermelho
+  // atravessa o vidro do gráfico vindo do fundo.
+  const blobs = blobTheme[state.current_status];
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50">
+    <main
+      className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50"
+      style={
+        {
+          "--blob-a": blobs.blobA,
+          "--blob-b": blobs.blobB,
+        } as React.CSSProperties
+      }
+    >
       {/* Mesmo fundo de tijolo da Home (classes globais de globals.css;
           opacidade do véu vem do Redis via /admin/aparencia). */}
       {background.enabled && (
@@ -79,6 +94,11 @@ export default async function StatsPage() {
           />
         </>
       )}
+      <div className="blob-field" aria-hidden>
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+      </div>
       <header className="space-y-1">
         <Link
           href="/"
