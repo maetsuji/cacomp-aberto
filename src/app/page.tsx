@@ -1,4 +1,5 @@
 import { Link } from "next-view-transitions";
+import { BackgroundStyle } from "@/components/BackgroundStyle";
 import { PushSubscribeButton } from "@/components/PushSubscribeButton";
 import { TimeAgo } from "@/components/TimeAgo";
 import { maybeAutoClose } from "@/lib/auto-close";
@@ -99,42 +100,11 @@ export default async function HomePage() {
   const isOpen = state.current_status === "OPEN";
 
   // Sem cor de fundo no <main> de propósito: a base escura vive no body
-  // (globals.css) pra não pintar por cima dos blobs de z-index negativo.
+  // (globals.css) pra não pintar por cima do fundo persistente (tijolo +
+  // blobs), que mora no layout raiz — aqui só injetamos as cores/vars.
   return (
-    <main
-      className="flex min-h-dvh flex-col text-zinc-50"
-      style={
-        {
-          "--blob-a": blobs.blobA,
-          "--blob-b": blobs.blobB,
-        } as React.CSSProperties
-      }
-    >
-      {/* ── Fundo de tijolo: textura da parede do CA atrás de tudo,
-          coberta por um véu escuro translúcido pra manter o texto
-          legível (opacidade ajustável em /admin/aparencia). ── */}
-      {background.enabled && (
-        <>
-          <div className="brick-bg" aria-hidden />
-          <div
-            className="brick-overlay"
-            aria-hidden
-            style={
-              {
-                "--bg-overlay-opacity": background.overlayOpacity,
-              } as React.CSSProperties
-            }
-          />
-        </>
-      )}
-      {/* ── Fundo vivo: blobs de luz na cor do estado (decorativo).
-          Fica numa camada fixa atrás de tudo; animação e blur em
-          globals.css (.blob-field / .blob). ── */}
-      <div className="blob-field" aria-hidden>
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
-      </div>
+    <main className="flex min-h-dvh flex-col text-zinc-50">
+      <BackgroundStyle blobs={blobs} background={background} />
       {/* ── Micro header: wordart do cacomp.xyz, só marca visual ── */}
       <header className="flex justify-center pt-4 pb-2">
         {/* eslint-disable-next-line @next/next/no-img-element -- GIF

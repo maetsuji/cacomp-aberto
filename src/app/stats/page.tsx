@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Link } from "next-view-transitions";
+import { BackgroundStyle } from "@/components/BackgroundStyle";
 import { getBackgroundSettings } from "@/lib/background-settings";
 import { getBlobTheme } from "@/lib/blob-theme";
 import { getFlickerSettings } from "@/lib/flicker-settings";
@@ -69,36 +70,10 @@ export default async function StatsPage() {
   const blobs = blobTheme[state.current_status];
 
   return (
-    <main
-      className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50"
-      style={
-        {
-          "--blob-a": blobs.blobA,
-          "--blob-b": blobs.blobB,
-        } as React.CSSProperties
-      }
-    >
-      {/* Mesmo fundo de tijolo da Home (classes globais de globals.css;
-          opacidade do véu vem do Redis via /admin/aparencia). */}
-      {background.enabled && (
-        <>
-          <div className="brick-bg" aria-hidden />
-          <div
-            className="brick-overlay"
-            aria-hidden
-            style={
-              {
-                "--bg-overlay-opacity": background.overlayOpacity,
-              } as React.CSSProperties
-            }
-          />
-        </>
-      )}
-      <div className="blob-field" aria-hidden>
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
-      </div>
+    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-8 text-zinc-50">
+      {/* Fundo (tijolo + blobs) mora no layout raiz e persiste entre
+          páginas — aqui só injetamos as cores/vars do estado atual. */}
+      <BackgroundStyle blobs={blobs} background={background} />
       <header className="flex items-center justify-between gap-4">
         <div className="space-y-1">
           {/* Mesma placa de neon da Home, herdando o flicker configurado */}

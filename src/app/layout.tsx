@@ -72,6 +72,19 @@ export default function RootLayout({
         className={`${inter.variable} ${monaspaceNeon.variable} ${tiltNeon.variable}`}
       >
         <body className="antialiased">
+          {/* ── Fundo persistente: tijolo + véu + blobs vivem AQUI (o
+              layout não desmonta em navegação client-side), então a
+              animação dos blobs continua de onde estava ao trocar de
+              página. Cada página injeta as cores/opacidade via
+              <BackgroundStyle> (CSS vars no :root); páginas com <main>
+              opaco (/admin, /report) simplesmente cobrem o fundo. ── */}
+          <div className="brick-bg" aria-hidden />
+          <div className="brick-overlay" aria-hidden />
+          <div className="blob-field" aria-hidden>
+            <div className="blob blob-1" />
+            <div className="blob blob-2" />
+            <div className="blob blob-3" />
+          </div>
           {children}
           <Analytics />
           <SpeedInsights />
